@@ -1,0 +1,68 @@
+<div class="admin__scope-old">
+    <fieldset class="fieldset admin__fieldset">
+        <legend class="admin__legend legend">
+            <span><?php echo __('Settings') ?></span>
+        </legend>
+        <p><strong><?php echo __('Note: Only orders in Processing status will be sent to Knawat to processs.')?></strong></p>
+        <p><?php echo __('You need a Knawat consumer key and consumer secret for import products into your store from knawat.com') ?></p>
+        <form class="form" action="<?php echo $this->getUrl("dropshipping/dropshipping/") ?>" method="post" name="settings_form">
+            <input name="form_key" type="hidden" value="<?php /* @escapeNotVerified */ echo $block->getFormKey() ?>" />
+            <div class="field knawat-admin-control">
+                <label for="consumer_key" class="label">
+                    <span><?php echo __('Knawat Consumer Key') ?></span>
+                </label>
+                <input type="text" id="consumer_key" name="consumer_key" class="input-text">
+                <p class="knawat-description" id="mp_consumer_key-description"><?php echo __('You can get your Knawat Consumer Key from your')?><strong><?php echo __('Dashboard') ?>&gt;<?php echo __('Store settings') ?></strong><a href="https://knawat.com/wp-content/uploads/2018/09/knawat_api_key_and_secret.png" target="_blank"><?php echo __('click to see the image') ?></a>
+                </p>
+            </div>
+            <div class="field knawat-admin-control">
+                <label for="consumer_secret" class="label">
+                    <span><?php echo __('Knawat Consumer Secret') ?></span>
+                </label>
+                <input type="text" id="consumer_secret" name="consumer_secret" class="input-text">
+                <p class="knawat-description" id="mp_consumer_secret-description">
+                    <?php echo __('You can get your Knawat Consumer Key from your')?><strong><?php echo __('Dashboard') ?>&gt;<?php echo __('Store settings') ?></strong><a href="https://knawat.com/wp-content/uploads/2018/09/knawat_api_key_and_secret.png" target="_blank"><?php echo __('click to see the image') ?></a>
+                </p>
+            </div>
+            <div class="field knawat-admin-control">
+                <label for="product_batch_size" class="label">
+                    <span><?php echo __('Products Batch Size') ?></span>
+                </label>
+                <input type="number" id="product_batch_size" name="product_batch_size" class="input-text" min="1" max="1000" value="12">
+                <p class="knawat-description" id="product_batch-description">
+                    <?php echo __('Products batch size for import products from knawat.com') ?>
+                </p>
+            </div>
+            <div class="field knawat-admin-control">
+                <label for="consumer_key" class="label">
+                    <span><?php echo __('Orders Synchronization Interval') ?></span>
+                </label>
+                <select name="orders_synchronization_interval" id="orders_synchronization_interval">
+                    <option value="172800"><?php echo __('48 Hours') ?></option>
+                    <option value="86400"><?php echo __('24 Hours') ?></option>
+                    <option value="43200"><?php echo __('12 Hours') ?></option>
+                    <option value="32400"><?php echo __('9 Hours') ?></option>
+                    <option value="21600" selected><?php echo __('6 Hours') ?></option>
+                    <option value="10800"><?php echo __('3 Hours') ?></option>
+                </select>
+                <p class="knawat-description" id="order_pull_interval-description">
+                    <?php echo __('Select interval for synchronization orders with Knawat') ?>
+                </p>
+            </div>
+            <div class="field knawat-admin-control">
+                <label for="connection_status" class="label">
+                    <span><?php echo __('Knawat Connection status') ?></span>
+                    <span class="knawat-store-status connected"><?php echo __('Connected') ?></span>
+                </label>
+
+            </div>
+            <div class="actions-toolbar">
+                <div class="primary">
+                    <button type="submit" class="action submit primary" title="<?php echo __('Save Settings') ?>">
+                        <span><?php echo __('Save Settings') ?></span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </fieldset>
+</div>

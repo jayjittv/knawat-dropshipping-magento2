@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
-    <menu>
-        <add id="Knawat_Dropshipping::elements" title="Dropshipping" module="Knawat_Dropshipping" resource="Knawat_Dropshipping::elements" sortOrder="20"/>
-    </menu>
+	<menu>
+		<add id="Knawat_Dropshipping::elements" title="Dropshipping" module="Knawat_Dropshipping" resource="Knawat_Dropshipping::elements" sortOrder="20"/>
+		<add id="Knawat_Dropshipping::request" title="Settings" module="Knawat_Dropshipping" resource="Knawat_Dropshipping::callprice" parent="Knawat_Dropshipping::elements" sortOrder="1" action="dropshipping/dropshipping/index" />
+	</menu>
 </config>

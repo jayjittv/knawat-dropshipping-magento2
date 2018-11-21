@@ -1,0 +1,37 @@
+@color_connected: #185b00;
+@color_disconnected: #e22626;
+
+.knawat-admin-control {
+	>input {
+		width: 50%;
+	}
+}
+.label {
+	max-width: 100px;
+	span.connected {
+		background: #d0e5a9;
+		color: @color_connected;
+		border: 1px solid #5b8116;
+	}
+	span.disconnected {
+		background: #f9d4d4;
+		color: @color_disconnected;
+		border: 1px solid #ed4f2e;
+	}
+	span {
+		width: 250px;
+		display: inline-block;
+	}
+	.knawat-store-status {
+		width: 100px;
+		display: inline-block;
+	}
+}
+.knawat-store-status {
+	font-weight: bold;
+	text-align: center;
+	text-transform: uppercase;
+}
+p.knawat-description {
+	margin-left: 252px;
+}
