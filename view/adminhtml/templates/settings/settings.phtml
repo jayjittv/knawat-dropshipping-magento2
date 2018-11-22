@@ -5,13 +5,13 @@
         </legend>
         <p><strong><?php echo __('Note: Only orders in Processing status will be sent to Knawat to processs.')?></strong></p>
         <p><?php echo __('You need a Knawat consumer key and consumer secret for import products into your store from knawat.com') ?></p>
-        <form class="form" action="<?php echo $this->getUrl("dropshipping/dropshipping") ?>" method="post" name="settings_form">
+        <form class="form" action="<?php echo $this->getUrl("dropshipping/dropshipping/edit") ?>" method="post" name="settings_form">
             <input name="form_key" type="hidden" value="<?php /* @escapeNotVerified */ echo $block->getFormKey() ?>" />
             <div class="field knawat-admin-control">
                 <label for="consumer_key" class="knawat-label">
                     <span class="knawat-admin-label"><?php echo __('Knawat Consumer Key') ?></span>
                 </label>
-                <input type="text" id="consumer_key" name="consumer_key" class="input-text">
+                <input type="text" id="consumer_key" name="consumer_key" class="input-text" value="<?php echo $block->getConfigData('consumer_key') ?>">
                 <p class="knawat-description" id="mp_consumer_key-description"><?php echo __('You can get your Knawat Consumer Key from your ')?><strong><?php echo __('Dashboard ') ?>&gt;<?php echo __(' Store settings ') ?></strong><a href="https://knawat.com/wp-content/uploads/2018/09/knawat_api_key_and_secret.png" target="_blank"><?php echo __('click to see the image') ?></a>
                 </p>
             </div>
@@ -19,7 +19,7 @@
                 <label for="consumer_secret" class="knawat-label">
                     <span class="knawat-admin-label"><?php echo __('Knawat Consumer Secret') ?></span>
                 </label>
-                <input type="text" id="consumer_secret" name="consumer_secret" class="input-text">
+                <input type="text" id="consumer_secret" name="consumer_secret" class="input-text" value="<?php echo $block->getConfigData('consumer_secret') ?>">
                 <p class="knawat-description" id="mp_consumer_secret-description">
                     <?php echo __('You can get your Knawat Consumer Key from your ')?><strong><?php echo __('Dashboard ') ?>&gt;<?php echo __(' Store settings ') ?></strong><a href="https://knawat.com/wp-content/uploads/2018/09/knawat_api_key_and_secret.png" target="_blank"><?php echo __('click to see the image') ?></a>
                 </p>
@@ -28,22 +28,23 @@
                 <label for="product_batch_size" class="knawat-label">
                     <span class="knawat-admin-label"><?php echo __('Products Batch Size') ?></span>
                 </label>
-                <input type="number" id="product_batch_size" name="product_batch_size" class="input-text" min="1" max="1000" value="12">
+                <input type="number" id="product_batch_size" name="product_batch_size" class="input-text" min="1" max="1000" value="<?php if(!empty($block->getConfigData('product_batch_size'))){ echo $block->getConfigData('product_batch_size');}else{ echo __('12'); }?>">
                 <p class="knawat-description" id="product_batch-description">
                     <?php echo __('Products batch size for import products from knawat.com') ?>
                 </p>
             </div>
             <div class="field knawat-admin-control">
-                <label for="consumer_key" class="knawat-label">
+                <label for="orders_synchronization_interval" class="knawat-label">
                     <span class="knawat-admin-label"><?php echo __('Orders Synchronization Interval') ?></span>
                 </label>
                 <select name="orders_synchronization_interval" id="orders_synchronization_interval">
-                    <option value="172800"><?php echo __('48 Hours') ?></option>
-                    <option value="86400"><?php echo __('24 Hours') ?></option>
-                    <option value="43200"><?php echo __('12 Hours') ?></option>
-                    <option value="32400"><?php echo __('9 Hours') ?></option>
-                    <option value="21600" selected><?php echo __('6 Hours') ?></option>
-                    <option value="10800"><?php echo __('3 Hours') ?></option>
+                    <?php $synchronizationInterval = $block->getConfigData('orders_synchronization_interval') ?>
+                    <option value="172800" <?php if(!empty($synchronizationInterval) && $synchronizationInterval=='172800') echo 'selected = "selected"';?>><?php echo __('48 Hours') ?></option>
+                    <option value="86400" <?php if(!empty($synchronizationInterval) && $synchronizationInterval=='86400') echo 'selected = "selected"';?>><?php echo __('24 Hours') ?></option>
+                    <option value="43200" <?php if(!empty($synchronizationInterval) && $synchronizationInterval=='43200'){ echo 'selected = "selected"'; }else{ echo 'selected = "selected"';}?>><?php echo __('12 Hours') ?></option>
+                    <option value="32400" <?php if(!empty($synchronizationInterval) && $synchronizationInterval=='32400') echo 'selected = "selected"';?>><?php echo __('9 Hours') ?></option>
+                    <option value="21600" <?php if(!empty($synchronizationInterval) && $synchronizationInterval=='21600') echo 'selected = "selected"';?>><?php echo __('6 Hours') ?></option>
+                    <option value="10800" <?php if(!empty($synchronizationInterval) && $synchronizationInterval=='10800') echo 'selected = "selected"';?>><?php echo __('3 Hours') ?></option>
                 </select>
                 <p class="knawat-description" id="order_pull_interval-description">
                     <?php echo __('Select interval for synchronization orders with Knawat') ?>

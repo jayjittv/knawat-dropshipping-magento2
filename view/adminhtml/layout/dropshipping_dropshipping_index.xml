@@ -2,8 +2,8 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="content">
-            <block class="Magento\Backend\Block\Template" name="settings.settings"
-                   template="Knawat_Dropshipping::settings/settings.phtml"/>
+            <block class="Knawat\Dropshipping\Block\Adminhtml\Settings" name="settings.settings"
+                   template="Knawat_Dropshipping::settings/settings.phtml" cacheable="false"/>
         </referenceContainer>
     </body>
 </page>
