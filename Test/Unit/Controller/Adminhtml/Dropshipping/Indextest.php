@@ -1,4 +1,5 @@
 <?php
+
 namespace Knawat\Dropshipping\Test\Unit\Controller\Controller\Adminhtml\Dropshipping;
 
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
@@ -33,10 +34,8 @@ class IndexTest extends \PHPUnit\Framework\TestCase
      * @var \Magento\Framework\TestFramework\Unit\Helper\ObjectManager
      */
     protected $objectManager;
-
-
     /**
-     *setup environment for Index controller
+     * setup environment for Index controller
      *
      */
     protected function setUp()
@@ -62,16 +61,16 @@ class IndexTest extends \PHPUnit\Framework\TestCase
         $this->pageConfig->expects($this->any())->method('getTitle')->willReturn($this->pageTitle);
         $this->pageTitle->expects($this->any())->method('prepend')->willReturnSelf();
         $this->objectManager = new ObjectManager($this);
-
     }
 
     /**
-     *test execution
+     * test execution
      * @return bool
      */
     public function testExecute()
     {
-        $model = $this->objectManager->getObject('Knawat\Dropshipping\Controller\Adminhtml\Dropshipping\Index',
+        $model = $this->objectManager->getObject(
+            'Knawat\Dropshipping\Controller\Adminhtml\Dropshipping\Index',
             ['resultPageFactory' => $this->resultPageFactory]
         );
         $this->resultPageFactory->expects($this->once())->method('create')->willReturn($this->resultPage);

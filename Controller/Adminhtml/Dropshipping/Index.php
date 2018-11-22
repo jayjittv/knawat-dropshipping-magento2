@@ -29,7 +29,7 @@ class Index extends \Magento\Backend\App\Action
         $this->resultPageFactory = $resultPageFactory;
     }
     /**
-     * Hello test controller page.
+     * Knawat settings controller page.
      *
      * @return \Magento\Backend\Model\View\Result\Page
      */

@@ -5,28 +5,28 @@
         </legend>
         <p><strong><?php echo __('Note: Only orders in Processing status will be sent to Knawat to processs.')?></strong></p>
         <p><?php echo __('You need a Knawat consumer key and consumer secret for import products into your store from knawat.com') ?></p>
-        <form class="form" action="<?php echo $this->getUrl("dropshipping/dropshipping/") ?>" method="post" name="settings_form">
+        <form class="form" action="<?php echo $this->getUrl("dropshipping/dropshipping") ?>" method="post" name="settings_form">
             <input name="form_key" type="hidden" value="<?php /* @escapeNotVerified */ echo $block->getFormKey() ?>" />
             <div class="field knawat-admin-control">
-                <label for="consumer_key" class="label">
-                    <span><?php echo __('Knawat Consumer Key') ?></span>
+                <label for="consumer_key" class="knawat-label">
+                    <span class="knawat-admin-label"><?php echo __('Knawat Consumer Key') ?></span>
                 </label>
                 <input type="text" id="consumer_key" name="consumer_key" class="input-text">
-                <p class="knawat-description" id="mp_consumer_key-description"><?php echo __('You can get your Knawat Consumer Key from your')?><strong><?php echo __('Dashboard') ?>&gt;<?php echo __('Store settings') ?></strong><a href="https://knawat.com/wp-content/uploads/2018/09/knawat_api_key_and_secret.png" target="_blank"><?php echo __('click to see the image') ?></a>
+                <p class="knawat-description" id="mp_consumer_key-description"><?php echo __('You can get your Knawat Consumer Key from your ')?><strong><?php echo __('Dashboard ') ?>&gt;<?php echo __(' Store settings ') ?></strong><a href="https://knawat.com/wp-content/uploads/2018/09/knawat_api_key_and_secret.png" target="_blank"><?php echo __('click to see the image') ?></a>
                 </p>
             </div>
             <div class="field knawat-admin-control">
-                <label for="consumer_secret" class="label">
-                    <span><?php echo __('Knawat Consumer Secret') ?></span>
+                <label for="consumer_secret" class="knawat-label">
+                    <span class="knawat-admin-label"><?php echo __('Knawat Consumer Secret') ?></span>
                 </label>
                 <input type="text" id="consumer_secret" name="consumer_secret" class="input-text">
                 <p class="knawat-description" id="mp_consumer_secret-description">
-                    <?php echo __('You can get your Knawat Consumer Key from your')?><strong><?php echo __('Dashboard') ?>&gt;<?php echo __('Store settings') ?></strong><a href="https://knawat.com/wp-content/uploads/2018/09/knawat_api_key_and_secret.png" target="_blank"><?php echo __('click to see the image') ?></a>
+                    <?php echo __('You can get your Knawat Consumer Key from your ')?><strong><?php echo __('Dashboard ') ?>&gt;<?php echo __(' Store settings ') ?></strong><a href="https://knawat.com/wp-content/uploads/2018/09/knawat_api_key_and_secret.png" target="_blank"><?php echo __('click to see the image') ?></a>
                 </p>
             </div>
             <div class="field knawat-admin-control">
-                <label for="product_batch_size" class="label">
-                    <span><?php echo __('Products Batch Size') ?></span>
+                <label for="product_batch_size" class="knawat-label">
+                    <span class="knawat-admin-label"><?php echo __('Products Batch Size') ?></span>
                 </label>
                 <input type="number" id="product_batch_size" name="product_batch_size" class="input-text" min="1" max="1000" value="12">
                 <p class="knawat-description" id="product_batch-description">
@@ -34,8 +34,8 @@
                 </p>
             </div>
             <div class="field knawat-admin-control">
-                <label for="consumer_key" class="label">
-                    <span><?php echo __('Orders Synchronization Interval') ?></span>
+                <label for="consumer_key" class="knawat-label">
+                    <span class="knawat-admin-label"><?php echo __('Orders Synchronization Interval') ?></span>
                 </label>
                 <select name="orders_synchronization_interval" id="orders_synchronization_interval">
                     <option value="172800"><?php echo __('48 Hours') ?></option>
@@ -50,8 +50,8 @@
                 </p>
             </div>
             <div class="field knawat-admin-control">
-                <label for="connection_status" class="label">
-                    <span><?php echo __('Knawat Connection status') ?></span>
+                <label for="connection_status" class="knawat-label">
+                    <span class="knawat-admin-label"><?php echo __('Knawat Connection status') ?></span>
                     <span class="knawat-store-status connected"><?php echo __('Connected') ?></span>
                 </label>
 
