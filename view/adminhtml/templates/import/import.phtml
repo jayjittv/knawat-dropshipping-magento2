@@ -1,0 +1,20 @@
+<div class="admin__scope-old">
+    <fieldset class="fieldset admin__fieldset">
+        <legend class="admin__legend legend">
+            <span><?php echo __('Product Import') ?></span>
+        </legend>
+        <p><?php echo __('Plugin auto import/update products from knawat.com in background on regular interval. But, if you want then you can manually start import.') ?></p>
+        <form class="form" action="<?php echo $this->getUrl("dropshipping/dropshipping/saveimport") ?>" method="post" name="import_form">
+            <input name="form_key" type="hidden" value="<?php /* @escapeNotVerified */ echo $block->getFormKey() ?>" />
+            <input type="hidden" id="product_batch_size" name="product_batch_size" value="<?php if(!empty($block->getConfigData('product_batch_size'))){ echo $block->getConfigData('product_batch_size');}?>">
+            <div class="field knawat-admin-control">
+                <label for="start_stop_import" class="knawat-label">
+                    <span class="knawat-admin-label"><?php echo __('Start product import') ?></span>
+                </label>
+                <button type="submit" class="action submit primary input-text" title="<?php echo __('Start Import') ?>">
+                    <span><?php echo __('Start Import') ?></span>
+                </button>
+            </div>
+        </form>
+    </fieldset>
+</div>
