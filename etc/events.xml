@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="sales_order_save_after">
+        <observer name="mymodule_sales_order_save_after" instance="Knawat\Dropshipping\Observer\OrderSave" />
+    </event>
+    <event name="sales_order_address_save_after">
+        <observer name="sales_order_address_save_after"
+                  instance="Knawat\Dropshipping\Observer\AddressSave" />
+    </event>
+    <event name="checkout_onepage_controller_success_action">
+        <observer name="checkout_submit_all_after" instance="Knawat\Dropshipping\Observer\OrderSuccess" />
+    </event>
+</config>
