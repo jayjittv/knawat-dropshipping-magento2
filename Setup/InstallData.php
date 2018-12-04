@@ -11,7 +11,6 @@ use Magento\Sales\Model\Order;
 use Magento\Eav\Model\Entity\Attribute\SetFactory as AttributeSetFactory;
 use Magento\Catalog\Setup\CategorySetupFactory;
 
-
 /**
  * Class InstallData
  * @package Knawat\Dropshipping\Setup
@@ -49,8 +48,8 @@ class InstallData implements InstallDataInterface
         \Magento\Sales\Setup\SalesSetupFactory $salesSetupFactory,
         AttributeSetFactory $attributeSetFactory,
         CategorySetupFactory $categorySetupFactory
-    )
-    {
+    ) {
+    
         $this->eavSetupFactory = $eavSetupFactory;
         $this->salesSetupFactory = $salesSetupFactory;
         $this->attributeSetFactory = $attributeSetFactory;
@@ -65,7 +64,6 @@ class InstallData implements InstallDataInterface
     public function install(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
         $installer = $setup;
-
         $installer->startSetup();
         /*create Knawat Attribute set*/
         $categorySetup = $this->categorySetupFactory->create(['setup' => $setup]);
@@ -92,7 +90,9 @@ class InstallData implements InstallDataInterface
          */
         $eavSetup->removeAttribute(\Magento\Catalog\Model\Product::ENTITY, 'is_knawat');
         $eavSetup->addAttribute(
-            \Magento\Catalog\Model\Product::ENTITY, 'is_knawat', /* Custom Attribute Code */ [
+            \Magento\Catalog\Model\Product::ENTITY,
+            'is_knawat', /* Custom Attribute Code */
+            [
                 'group' => 'General',
                 'type' => 'int',
                 'backend' => '',
@@ -114,9 +114,31 @@ class InstallData implements InstallDataInterface
                 'unique' => false
             ]
         );
-        /* create order Attribute is_knawat*/
+
+        /**
+         * Add attributes to the Sales Ortder
+         * create is_knawat Attribute for order
+         */
         $salesSetup = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $installer]);
         $salesSetup->addAttribute(Order::ENTITY, 'is_knawat', [
+            'type' => \Magento\Framework\DB\Ddl\Table::TYPE_SMALLINT,
+            'default' => '0',
+            'visible' => false,
+            'nullable' => true
+        ]);
+        /**
+         * create knawat_order_id Attribute for order
+         */
+        $salesSetup->addAttribute(Order::ENTITY, 'knawat_order_id', [
+            'type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+            'visible' => false,
+            'length' => 255,
+            'nullable' => true
+        ]);
+        /**
+         * create knawat_sync_failed Attribute for order
+         */
+        $salesSetup->addAttribute(Order::ENTITY, 'knawat_sync_failed', [
             'type' => \Magento\Framework\DB\Ddl\Table::TYPE_SMALLINT,
             'default' => '0',
             'visible' => false,
