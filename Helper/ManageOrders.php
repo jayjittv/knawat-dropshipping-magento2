@@ -7,7 +7,6 @@ use Knawat\MP;
 use Zend\Log\Writer\Stream;
 use Zend\Log\Logger;
 
-
 /**
  * Class ManageOrders
  * @package Knawat\Dropshipping\Helper
@@ -391,34 +390,34 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
      * @param array $item
      * @return array|bool
      */
-    public function knawatPullOrders($item = array()  ){
-        if( empty( $item ) ){
+    public function knawatPullOrders($item = [])
+    {
+        if (empty($item)) {
             $item = $this->params;
         }
 
         $this->mp_api = $this->createMP();
         $knawat_orders = $this->mp_api->get('orders/?page='.$item['page'].'&limit='.$item['limit']);
 
-        if( empty( $knawat_orders ) ){
+        if (empty($knawat_orders)) {
             return false;
         }
 
         foreach ($knawat_orders as $knawat_order) {
-            if($knawat_order->id){
+            if ($knawat_order->id) {
                 $knawatId = $knawat_order->id;
                 $order = $this->orderFactory->create()->load($knawatId, 'knawat_order_id');
-                if($order->getId()){
-                    $this->knawatUpdateOrders( $knawat_order );
+                if ($order->getId()) {
+                    $this->knawatUpdateOrders($knawat_order);
                 }
             }
-
         }
 
-        $item['orders_total'] = count( $knawat_orders );
-        if( $item['orders_total'] < $item['limit'] ){
+        $item['orders_total'] = count($knawat_orders);
+        if ($item['orders_total'] < $item['limit']) {
             $item['is_complete'] = true;
             return $item;
-        }else{
+        } else {
             $item['page'] = $item['page'] + 1;
             $this->params['page'] = $item['page'];
             $item['is_complete'] = false;
@@ -431,23 +430,22 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $knawat_order
      * @throws \Exception
      */
-    public function knawatUpdateOrders($knawat_order){
+    public function knawatUpdateOrders($knawat_order)
+    {
         $knawat_status = isset($knawat_order->knawat_order_status) ? $knawat_order->knawat_order_status : '';
         $shipment_provider_name = isset($knawat_order->shipment_provider_name) ? $knawat_order->shipment_provider_name : '';
         $shipment_tracking_number = isset($knawat_order->shipment_tracking_number) ? $knawat_order->shipment_tracking_number : '';
-        if( $knawat_status !== '' || $shipment_provider_name !== '' || $shipment_tracking_number !== ''){
-            if( !empty($knawat_order) ){
-                $order = $this->orderFactory->create()->load($knawat_order->id,'knawat_order_id');
-                if(!empty($order)){
-                    $order->setData('knawat_order_status',$knawat_status);
-                    $order->setData('shipment_provider_name',$shipment_provider_name);
-                    $order->setData('shipment_tracking_number',$shipment_tracking_number);
+        if ($knawat_status !== '' || $shipment_provider_name !== '' || $shipment_tracking_number !== '') {
+            if (!empty($knawat_order)) {
+                $order = $this->orderFactory->create()->load($knawat_order->id, 'knawat_order_id');
+                if (!empty($order)) {
+                    $order->setData('knawat_order_status', $knawat_status);
+                    $order->setData('shipment_provider_name', $shipment_provider_name);
+                    $order->setData('shipment_tracking_number', $shipment_tracking_number);
                     $this->saveTransaction->addObject($order);
                     $this->saveTransaction->save();
                 }
-
             }
         }
-
     }
 }
