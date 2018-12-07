@@ -137,7 +137,10 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     public function Import()
     {
         $mp = $this->createMP();
-
+        $websites = $this->getWebsites( false );
+        if (empty($websites)) {
+            return [ 'status' => 'fail', 'message' => __('Websites are not enabled for import.') ];
+        }
         $this->start_time = time();
         $data = [
             'imported' => [],
@@ -153,7 +156,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             case 'single':
                 $sku = sanitize_text_field($this->params['sku']);
                 if (empty($sku)) {
-                    return [ 'status' => 'fail', 'message' => __('Please provide product sku.', 'dropshipping-woocommerce') ];
+                    return [ 'status' => 'fail', 'message' => __('Please provide product sku.') ];
                 }
                 $this->data = $mp->getProductBySku($sku);
                 break;
@@ -173,7 +176,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             $products = [];
             if ('single' === $this->import_type) {
                 if (isset($response->product->status) && 'failed' == $response->product->status) {
-                    $error_message = isset($response->product->message) ? $response->product->message : __('Something went wrong during get data from Knawat MP API. Please try again later.', 'dropshipping-woocommerce');
+                    $error_message = isset($response->product->message) ? $response->product->message : __('Something went wrong during get data from Knawat MP API. Please try again later.' );
                     return [ 'status' => 'fail', 'message' => $error_message ];
                 }
                 $products[] = $response->product;
@@ -182,7 +185,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             }
             // Handle errors
             if (isset($products->code) || !is_array($products)) {
-                return [ 'status' => 'fail', 'message' => __('Something went wrong during get data from Knawat MP API. Please try again later.', 'dropshipping-woocommerce') ];
+                return [ 'status' => 'fail', 'message' => __('Something went wrong during get data from Knawat MP API. Please try again later.') ];
             }
 
             // Update Product totals.
@@ -198,27 +201,47 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 if ($index <= $this->params['product_index']) {
                     continue;
                 }
-                /* if( $index < 2){
-                    continue;
-                } */
-                $formated_data = $this->getFormattedProducts($product);
-                // Create and Setup Attributes.
-                $savedAttributes = $this->createUpdateAttributes($formated_data['raw_attributes'], $attributeSetId);
 
-                $full_updateNeeded = 0;
+                $formated_data = $this->getFormattedProducts($product);
+
                 // Prevent new import for 0 qty products.
-                $total_qty = 0;
+                $totalQty = 0;
                 $variations = $formated_data['variations'];
                 if (!empty($variations)) {
                     foreach ($variations as $vars) {
-                        $total_qty += isset($vars['stock_quantity']) ? $vars['stock_quantity'] : 0;
+                        $totalQty += isset($vars['stock_quantity']) ? $vars['stock_quantity'] : 0;
                     }
+                }
+
+                if( !isset($formated_data['id']) || empty($formated_data['id'] ) ){
+                    if( $totalQty == 0 ){
+                        continue;
+                        // @todo  Log needed here.
+                    }
+                    // Create and Setup Attributes.
+                    $savedAttributes = $this->createUpdateAttributes($formated_data['raw_attributes'], $attributeSetId);
                 }
 
                 // Create Update Product Variations.
                 $associatedProductIds = [];
+                $productResource = $this->_objectManager->create('\Magento\Catalog\Model\ResourceModel\Product');
                 foreach ($variations as $variation) {
                     if (isset($variation['id']) && !empty($variation['id']) && $variation['id'] > 0) {
+
+                        // update Exising Product Variation
+                        $var_product = $this->_objectManager->create('\Magento\Catalog\Model\Product')->load($variation['id']);
+                        $var_product->setPrice($variation['price']); // price of product
+                        var_dump($var_product->getStockData());
+                        $var_product->setStockData(
+                            [
+                                'is_in_stock'  => ($variation['stock_quantity'] > 0 ) ? 1 : 0,
+                                'qty' => $variation['stock_quantity']
+                            ]
+                        );
+                        $var_product->save();
+                        /* $productResource->saveAttribute($var_product, 'price');
+                        $productResource->saveAttribute($var_product, 'stock_data'); */
+                        var_dump($var_product->getStockData());
                     } else {
                         // Variation not exists create it.
                         if (!isset($variation['sku']) || empty($variation['sku'])) {
@@ -251,7 +274,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $var_product->setPrice($variation['price']); // price of product
                         $var_product->setStatus(1); // Status on product enabled/ disabled 1/0
                         $var_product->setVisibility(1); // visibilty of product (catalog / search / catalog, search / Not visible individually)
-                        $var_product->setWebsiteIds([1]);
+                        $var_product->setWebsiteIds(array_keys($websites));
                         $var_product->setCategoryIds([2]);
                         $var_product->setTaxClassId(0); // Tax class id
                         $var_product->setWeight($variation['weight']); // weight of product
@@ -274,59 +297,73 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                 }
 
-                // Main Product.
-                $main_product = $this->_objectManager->create('\Magento\Catalog\Model\Product');
-                $main_product->setSku($formated_data['sku']); // Set your sku here
-                $main_product->setName($formated_data['name']); // Name of Product
-                $main_product->setAttributeSetId($attributeSetId); // Attribute set id
-                $main_product->setStatus(1);
-                $main_product->setTypeId('configurable');
-                $main_product->setWebsiteIds([1]);
-                $main_product->setCategoryIds([2]);
-                $main_product->setStockData(
-                    [
-                        'use_config_manage_stock' => 0, //'Use config settings' checkbox
-                        'manage_stock' => 1, //manage stock
-                        'is_in_stock' => ($total_qty > 0) ? 1 : 0, //Stock Availability
-                    ]
-                );
+                if (isset($formated_data['id']) && !empty($formated_data['id']) && $formated_data['id'] > 0) {
+                    $main_product = $this->_objectManager->create('\Magento\Catalog\Model\Product')->load($formated_data['id']);
+                    $main_product->setStockData(
+                        [
+                            'manage_stock' => 1, //manage stock
+                            'is_in_stock' => ($totalQty > 0) ? 1 : 0, //Stock Availability
+                        ]
+                    );
+                    $main_product->save();
+                }else{
+                    // Main Product.
+                    $main_product = $this->_objectManager->create('\Magento\Catalog\Model\Product');
+                    $main_product->setSku($formated_data['sku']); // Set your sku here
+                    $main_product->setName($formated_data['name']); // Name of Product
+                    $main_product->setDescription($formated_data['description']); // Descripion of Product
+                    $main_product->setAttributeSetId($attributeSetId); // Attribute set id
+                    $main_product->setStatus(1);
+                    $main_product->setTypeId('configurable');
+                    $main_product->setWebsiteIds(array_keys($websites));
+                    $main_product->setCategoryIds([2]);
+                    $main_product->setStockData(
+                        [
+                            'use_config_manage_stock' => 0, //'Use config settings' checkbox
+                            'manage_stock' => 1, //manage stock
+                            'is_in_stock' => ($totalQty > 0) ? 1 : 0, //Stock Availability
+                        ]
+                    );
 
-                $configurableAttributesIds = [];
-                foreach ($savedAttributes as $savedAttribute) {
-                    if (isset($savedAttribute['attr_id'])) {
-                        $configurableAttributesIds[] = $savedAttribute['attr_id'];
+                    $configurableAttributesIds = [];
+                    foreach ($savedAttributes as $savedAttribute) {
+                        if (isset($savedAttribute['attr_id'])) {
+                            $configurableAttributesIds[] = $savedAttribute['attr_id'];
+                        }
+                    }
+                    $configurableAttributesIds = array_unique($configurableAttributesIds); // Super Attribute Ids Used To Create Configurable Product
+
+                    $main_product->setAffectConfigurableProductAttributes($attributeSetId);
+                    $main_product->getTypeInstance()->setUsedProductAttributeIds($configurableAttributesIds, $main_product);
+                    $this->_objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable')->setUsedProductAttributeIds($configurableAttributesIds, $main_product);
+                    $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
+                    $main_product->setAssociatedProductIds($associatedProductIds);// Setting Associated Products
+                    $main_product->setCanSaveConfigurableAttributes(true);
+                    $main_product->save();
+                    $productId = $main_product->getId(); // Configurable Product Id
+
+                    foreach ($websites as $webKey => $website) {
+                        foreach ($website as $storeKey => $store) {
+                            $storeLang = $store['lang'];
+                            $storeProductName = isset($formated_data['name_i18n']->$storeLang) ? $formated_data['name_i18n']->$storeLang : '';
+                            $storeProductDesc = isset($formated_data['description_i18n']->$storeLang) ? $formated_data['description_i18n']->$storeLang : '';
+
+                            $main_product->setStoreId($storeKey);
+                            $main_product->setName($storeProductName);
+                            $main_product->setDescription($storeProductDesc);
+                            $productResource->saveAttribute($main_product, 'name');
+                            $productResource->saveAttribute($main_product, 'description');
+                        }
+                    }
+
+                    $position = 0;
+                    $attributeModel = $this->_objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute');
+                    foreach ($configurableAttributesIds as $attributeId) {
+                        $data = ['attribute_id' => $attributeId, 'product_id' => $productId, 'position' => $position];
+                        $position++;
+                        $attributeModel->setData($data)->save();
                     }
                 }
-                $configurableAttributesIds = array_unique($configurableAttributesIds); // Super Attribute Ids Used To Create Configurable Product
-
-                $main_product->setAffectConfigurableProductAttributes($attributeSetId);
-                $main_product->getTypeInstance()->setUsedProductAttributeIds($configurableAttributesIds, $main_product);
-                $this->_objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable')->setUsedProductAttributeIds($configurableAttributesIds, $main_product);
-                $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
-                $main_product->setAssociatedProductIds($associatedProductIds);// Setting Associated Products
-                $main_product->setCanSaveConfigurableAttributes(true);
-                $main_product->save();
-                $productId = $main_product->getId(); // Configurable Product Id
-
-                $position = 0;
-                $attributeModel = $this->_objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute');
-                foreach ($configurableAttributesIds as $attributeId) {
-                    $data = ['attribute_id' => $attributeId, 'product_id' => $productId, 'position' => $position];
-                    $position++;
-                    $attributeModel->setData($data)->save();
-                }
-
-                // Arabic
-                $main_product = $this->_objectManager->create('\Magento\Catalog\Model\Product')->load($main_product->getId());
-                $main_product->setStoreId(2);
-                $main_product->setName($formated_data['name'].' AR'); // Name of Product
-                $main_product->save();
-
-                // Turkish
-                $main_product = $this->_objectManager->create('\Magento\Catalog\Model\Product')->load($main_product->getId());
-                $main_product->setStoreId(3);
-                $main_product->setName($formated_data['name'].' TR'); // Name of Product
-                $main_product->save();
 
                 echo "configurable product id: ".$main_product->getId()."\n";
                 return $formated_data;
@@ -410,7 +447,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         'attr_code' => $defaultCode
                     ];
 
-
                     if (isset($attributes[ $attributeName ])) {
                         if (!empty($attributeOptions)) {
                             $attributes[ $attributeName ] = array_unique(array_merge($attributes[ $attributeName ], $attributeOptions));
@@ -486,13 +522,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 $attributes[ $defaultAttributeName ]['value'][$defaultAttributeValue] = $attribute->option;
                             }
                         }
+                        $temp_variant['name'] .= '-'.implode('-', $temp_variant['raw_attributes']);
                     }
                 }
                 $variations[] = $temp_variant;
             }
-            // echo "<pre>";
-            // print_r($variations);
-            // die();
         }
         if (!empty($attributes)) {
             foreach ($attributes as $name => $value) {
@@ -549,10 +583,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
      * @param string $path
      * @return string
      */
-    public function getConfigData($path)
+    public function getConfigData($path, $store = 'default', $scopeId = 0)
     {
-        $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
-        return $this->scopeConfig->getValue(self::PATH_KNAWAT_DEFAULT.$path, $storeScope);
+        return $this->scopeConfig->getValue(self::PATH_KNAWAT_DEFAULT.$path, $store, $scopeId);
     }
 
     public function getAttrSetId($attrSetName)
@@ -814,30 +847,59 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Get Websites with store views and languages
      *
+     * @param  boolean $withAdmin
      * @return array websites
      */
-    protected function getWebsites()
+    protected function getWebsites( $withAdmin = true )
     {
         $_storeRepository = $this->_objectManager->create('Magento\Store\Model\StoreRepository');
         $stores = $_storeRepository->getList();
         $websites = [];
+        $enabaledWebsites = array();
         foreach ($stores as $store) {
-            /* if( $store["code"] == 'admin' ){
+            if( $store["code"] == 'admin' && !$withAdmin ){
                 continue;
-            } */
+            }
             $websiteId = $store["website_id"];
+            if( in_array( $websiteId, $enabaledWebsites ) ){
+                continue;
+            }
+
+            $defaultConsumerKey = $this->getConfigData('consumer_key');
+            $defaultConsumerSecret = $this->getConfigData('consumer_secret');
+            if(!empty($defaultConsumerKey) && !empty($defaultConsumerSecret)){
+                $enabaledWebsites[] = $websiteId;
+            }else{
+                $websiteConsumerKey = $this->getConfigData('consumer_key',"websites",$websiteId);
+                $websiteConsumerSecret = $this->getConfigData('consumer_secret',"websites",$websiteId);
+                if(!empty($websiteConsumerKey) && !empty($websiteConsumerSecret)){
+                        $enabaledWebsites[] = $websiteId;
+                }
+            }
+        }
+        foreach ($stores as $store) {
+            if( $store["code"] == 'admin' && !$withAdmin ){
+                continue;
+            }
+            $websiteId = $store["website_id"];
+            if( !in_array( $websiteId, $enabaledWebsites ) ){
+                continue;
+            }
             $storeId = $store["store_id"];
-            $store = [
-                'code' => $store["code"],
-                'lang' => 'en',
+            $storeData = [
+                'code' => $store["code"]
             ];
-            if ($storeId == 2) {
-                $store['lang'] = 'ar';
+            $defaultConfigLanguage = $this->getConfigData('store_language');
+            $storeData['lang'] = $defaultConfigLanguage;
+            $storeConfigLanguage = $this->getConfigData('store_language',"stores",$storeId);
+            if (!empty($storeConfigLanguage)) {
+                $storeData['lang'] = $storeConfigLanguage;
+                $websiteConfigLanguage = $this->getConfigData('store_language',"stores",$websiteId);
+                if (!empty($websiteConfigLanguage)) {
+                    $storeData['lang'] = $websiteConfigLanguage;
+                }
             }
-            if ($storeId == 3) {
-                $store['lang'] = 'tr';
-            }
-            $websites[$websiteId][$storeId] = $store;
+            $websites[$websiteId][$storeId] = $storeData;
         }
         return $websites;
     }
