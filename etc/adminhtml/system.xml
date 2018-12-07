@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="knawat" translate="label" sortOrder="10">
+            <label>Knawat</label>
+        </tab>
+        <section id="knawat" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Dropshipping</label>
+            <tab>knawat</tab>
+            <resource>Knawat_Dropshipping::dropshipping_config</resource>
+            <group id="store" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Configuration</label>
+                <field id="consumer_key" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Knawat Consumer Key</label>
+                    <comment>You can get your Knawat Consumer Key from your Dashboard > Store settings</comment>
+                </field>
+                <field id="consumer_secret" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Knawat Consumer Secret</label>
+                    <comment>You can get your Knawat Consumer Key from your Dashboard > Store settings</comment>
+                </field>
+                <field id="product_batch_size" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Products Batch Size</label>
+                    <comment>Products batch size for import products from knawat.com</comment>
+                </field>
+                <field id="store_language" translate="label" type="select"
+                       sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Select Option</label>
+                    <source_model>Knawat\Dropshipping\Model\Config\Source\Language</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

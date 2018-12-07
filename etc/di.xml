@@ -7,4 +7,5 @@
             </argument>
         </arguments>
     </virtualType>
+    <preference for="Magento\Config\Controller\Adminhtml\System\Config\Index" type="Knawat\Dropshipping\Controller\Adminhtml\System\Config\Index" />
 </config>

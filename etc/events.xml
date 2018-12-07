@@ -10,4 +10,7 @@
     <event name="checkout_onepage_controller_success_action">
         <observer name="checkout_submit_all_after" instance="Knawat\Dropshipping\Observer\OrderSuccess" />
     </event>
+    <event name="admin_system_config_changed_section_knawat">
+        <observer name="custom_admin_system_config_changed_section_knawat" instance="Knawat\Dropshipping\Observer\ConfigObserver"/>
+    </event>
 </config>
