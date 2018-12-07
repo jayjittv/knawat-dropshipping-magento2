@@ -49,7 +49,7 @@ class InstallData implements InstallDataInterface
         AttributeSetFactory $attributeSetFactory,
         CategorySetupFactory $categorySetupFactory
     ) {
-    
+
         $this->eavSetupFactory = $eavSetupFactory;
         $this->salesSetupFactory = $salesSetupFactory;
         $this->attributeSetFactory = $attributeSetFactory;
@@ -84,10 +84,10 @@ class InstallData implements InstallDataInterface
         /** @var EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
-        /**
-         * Add attributes to the eav/attribute
-         * create is_knawat Attribute for product
-         */
+        // /**
+        //  * Add attributes to the eav/attribute
+        //  * create is_knawat Attribute for product
+        //  */
         $eavSetup->removeAttribute(\Magento\Catalog\Model\Product::ENTITY, 'is_knawat');
         $eavSetup->addAttribute(
             \Magento\Catalog\Model\Product::ENTITY,
@@ -115,10 +115,10 @@ class InstallData implements InstallDataInterface
             ]
         );
 
-        /**
-         * Add attributes to the Sales Ortder
-         * create is_knawat Attribute for order
-         */
+        // /**
+        //  * Add attributes to the Sales Ortder
+        //  * create is_knawat Attribute for order
+        //  */
         $salesSetup = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $installer]);
         $salesSetup->addAttribute(Order::ENTITY, 'is_knawat', [
             'type' => \Magento\Framework\DB\Ddl\Table::TYPE_SMALLINT,
@@ -144,6 +144,46 @@ class InstallData implements InstallDataInterface
             'visible' => false,
             'nullable' => true
         ]);
+        /**
+         * create knawat_order_status Attribute for order
+         */
+        $salesSetup->addAttribute(Order::ENTITY, 'knawat_order_status', [
+            'type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+            'length'=> 255,
+            'visible' => false,
+            'nullable' => true
+        ]);
+        /**
+         * create knawat_order_status grid column for order
+         */
+        $installer->getConnection()->addColumn(
+            $installer->getTable('sales_order_grid'),
+            'knawat_order_status',
+            [
+                'type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                'length' => 255,
+                'comment' =>'Knawat Status'
+            ]
+        );
+        /**
+         * create shipment_provider_name Attribute for order
+         */
+        $salesSetup->addAttribute(Order::ENTITY, 'shipment_provider_name', [
+            'type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+            'length'=> 255,
+            'visible' => false,
+            'nullable' => true
+        ]);
+        /**
+         * create shipment_tracking_number Attribute for order
+         */
+        $salesSetup->addAttribute(Order::ENTITY, 'shipment_tracking_number', [
+            'type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+            'length'=> 255,
+            'visible' => false,
+            'nullable' => true
+        ]);
+
         $installer->endSetup();
     }
 }
