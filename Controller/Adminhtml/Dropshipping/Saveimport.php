@@ -12,7 +12,7 @@ use Magento\Framework\View\Result\PageFactory;
 class Saveimport extends \Magento\Backend\App\Action
 {
     /**
-     * @var \Knawat\Dropshipping\Helper\productImport
+     * @var \Knawat\Dropshipping\Helper\ProductImport
      */
     protected $helper;
 
@@ -24,7 +24,7 @@ class Saveimport extends \Magento\Backend\App\Action
      */
     public function __construct(
         Context $context,
-        \Knawat\Dropshipping\Helper\productImport $helper
+        \Knawat\Dropshipping\Helper\ProductImport $helper
     ) {
         parent::__construct($context);
         $this->helper = $helper;
