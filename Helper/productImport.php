@@ -122,11 +122,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $this->importType = $importType;
         $default_args = [
-            'import_id'         => 0,  // Import_ID
+            // 'import_id'         => 0,  // Import_ID
             'limit'             => 25, // Limit for Fetch Products
             'page'              => 1,  // Page Number
             'product_index'     => -1, // product index needed incase of memory issuee or timeout
-            'force_update'      => false, // Whether to force update existing items.
+            // 'force_update'      => false, // Whether to force update existing items.
             'prevent_timeouts'  => true,  // Check memory and time usage and abort if reaching limit.
             'is_complete'       => false, // Is Import Complete?
             'products_total'    => -1,
@@ -136,7 +136,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             'skipped'           => 0
         ];
         $this->params = array_merge($default_args, $params);
-
+        $defaultLanguage = 'en';
         $mp = $this->createMP();
         $websites = $this->getWebsites( false );
         if (empty($websites)) {
@@ -156,7 +156,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 break;
 
             case 'single':
-                $sku = sanitize_text_field($this->params['sku']);
+                $sku = $this->params['sku'];
                 if (empty($sku)) {
                     return [ 'status' => 'fail', 'message' => __('Please provide product sku.') ];
                 }
@@ -252,7 +252,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             );
                             $var_product->save();
                         } else {
-
                             if( empty( $savedAttributes )){
                                 if( isset($formated_data['raw_attributes']) ){
                                     // Create and Setup Attributes.
@@ -366,6 +365,13 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
                         $main_product->setAssociatedProductIds($associatedProductIds);// Setting Associated Products
                         $main_product->setCanSaveConfigurableAttributes(true);
+                        if( isset($savedAttributes['info_attribute']) && !empty( $savedAttributes['info_attribute'] ) ){
+                            foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
+                                $infoAttrib = current( $infoAttribute );
+                                $infoAttrib = isset($infoAttrib->$defaultLanguage) ? $infoAttrib->$defaultLanguage : '';
+                                $main_product->setData($infoKey, $infoAttrib);
+                            }
+                        }
                         $main_product->save();
                         $productId = $main_product->getId(); // Configurable Product Id
 
@@ -383,6 +389,19 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             }
                         }
 
+                        if( isset($savedAttributes['info_attribute']) && !empty( $savedAttributes['info_attribute'] ) ){
+                            foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
+                                foreach ($websites as $webKey => $website) {
+                                    foreach ($website as $storeKey => $store) {
+                                        $storeLang = isset( $store['lang'] ) ? $store['lang'] : $defaultLanguage;
+                                        $infoAttrib = current( $infoAttribute );
+                                        $infoAttrib = isset($infoAttrib->$storeLang) ? $infoAttrib->$storeLang : '';
+                                        $main_product->addAttributeUpdate($infoKey, $infoAttrib, $storeKey);
+                                    }
+                                }
+                            }
+                        }
+
                         $position = 0;
                         $attributeModel = $this->_objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute');
                         foreach ($configurableAttributesIds as $attributeId) {
@@ -390,7 +409,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             $position++;
                             $attributeModel->setData($attribData)->save();
                         }
-                        $data['created'][] = $productId;
+                        $data['imported'][] = $productId;
                     }
                 } catch (\Exception $e) {
                     echo $e->getMessage();
@@ -533,6 +552,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 $temp_variant['manage_stock'] = true;
                 $temp_variant['stock_quantity'] = isset( $variation->quantity ) ? $variation->quantity : 0;
+                $temp_variant['stock_quantity'] = 20;
                 if ($varient_id && $varient_id > 0) {
                     // Update Data for existing Variend Here.
                 } else {
@@ -735,12 +755,31 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             'option'                        => [ 'value' => $attributeValues ],
                         ]
                     );
+                    $new_attribute->save();
+                    /* Assign attribute to attribute set */
+                    $categorySetup->addAttributeToGroup('catalog_product', 'Knawat', 'General', $new_attribute->getId());
+
+                    $attributeId = $new_attribute->getId();
+                    $attributeCode = $new_attribute->getAttributeCode();
+                    $productAttributeRepository = $this->_objectManager->create(\Magento\Catalog\Model\Product\Attribute\Repository::class);
+                    $options = $productAttributeRepository->get($attributeCode)->getOptions();
+                    foreach ($options as $option) {
+                        if (!empty(trim($option->getLabel()))) {
+                            $existingOptions[$option->getLabel()] = $option->getValue();
+                        }
+                    }
+
+                    $formattedAttributes[$attribute['name']]['attr_id'] = $attributeId;
+                    $formattedAttributes[$attribute['name']]['attr_code'] = $attributeCode;
+                    $formattedAttributes[$attribute['name']]['attr_options'] = $existingOptions;
+
                 } else {
                     // Create Normal Attribute
                     $new_attribute->setData(
                         [
                             'attribute_code'                => $attributeCode,
                             'entity_type_id'                => $entityTypeId,
+                            'frontend_input'                => 'text',
                             'is_global'                     => 0,
                             'is_user_defined'               => 1,
                             'is_unique'                     => 0,
@@ -760,88 +799,89 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             'backend_type'                  => 'text',
                         ]
                     );
-                }
-                $new_attribute->save();
-                /* Assign attribute to attribute set */
-                $categorySetup->addAttributeToGroup('catalog_product', 'Knawat', 'General', $new_attribute->getId());
 
-                $attributeId = $new_attribute->getId();
-                $attributeCode = $new_attribute->getAttributeCode();
-                $productAttributeRepository = $this->_objectManager->create(\Magento\Catalog\Model\Product\Attribute\Repository::class);
-                $options = $productAttributeRepository->get($attributeCode)->getOptions();
-                foreach ($options as $option) {
-                    if (!empty(trim($option->getLabel()))) {
-                        $existingOptions[$option->getLabel()] = $option->getValue();
+                    $new_attribute->save();
+                    /* Assign attribute to attribute set */
+                    $categorySetup->addAttributeToGroup('catalog_product', 'Knawat', 'Attributes', $new_attribute->getId());
+                    $attributeCode = $new_attribute->getAttributeCode();
+                    $attValues = array();
+                    if (isset($attribute['value']['value']) && !empty($attribute['value']['value'])) {
+                        $attValues = $attribute['value']['value'];
                     }
+                    $formattedAttributes['info_attribute'][$attributeCode] = $attValues;
                 }
-
-                $formattedAttributes[$attribute['name']]['attr_id'] = $attributeId;
-                $formattedAttributes[$attribute['name']]['attr_code'] = $attributeCode;
-                $formattedAttributes[$attribute['name']]['attr_options'] = $existingOptions;
             } else {
-                $existingOptions = [];
-                $existingAttribute = $this->_objectManager->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class)->load($attributeId);
-                $attributeCode = $existingAttribute->getAttributeCode();
-                $productAttributeRepository = $this->_objectManager->create(\Magento\Catalog\Model\Product\Attribute\Repository::class);
-                $options = $productAttributeRepository->get($attributeCode)->getOptions();
-                foreach ($options as $option) {
-                    if (!empty(trim($option->getLabel()))) {
-                        $existingOptions[$option->getLabel()] = $option->getValue();
-                    }
-                }
-                // Add Aditional Option.
-                $reloadOptions = false;
-                if (isset($attribute['value']['value']) && !empty($attribute['value']['value'])) {
-                    foreach ($attribute['value']['value'] as $valueKey => $value) {
-                        if (!array_key_exists($valueKey, $existingOptions)) {
-                            $storeOption = [];
-                            foreach ($websites as $webKey => $website) {
-                                foreach ($website as $storeKey => $store) {
-                                    $storeLang = $store['lang'];
-                                    $storeOption[$storeKey] = isset($value->$storeLang) ? $value->$storeLang : $valueKey;
-                                }
-                            }
-                            if (empty($storeOption)) {
-                                $storeOption = [ $valueKey ];
-                            }
-
-                            $_option = $this->_objectManager->create(\Magento\Eav\Model\Entity\Attribute\Option::class);
-                            $_attributeOptionManagement = $this->_objectManager->create(\Magento\Eav\Api\AttributeOptionManagementInterface::class);
-                            $_attributeOptionLabel = $this->_objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
-
-                            $storeLabels = '';
-                            foreach ($storeOption as $sKey => $sOption) {
-                                $_attributeOptionLabel2 = $this->_objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
-                                $_attributeOptionLabel2->setStoreId($sKey);
-                                $_attributeOptionLabel2->setLabel($sOption);
-                                $storeLabels[$sKey] = $_attributeOptionLabel2;
-                            }
-                            $_attributeOptionLabel->setStoreId(0);
-                            $_attributeOptionLabel->setLabel($valueKey);
-                            $_option->setLabel($_attributeOptionLabel);
-                            $_option->setStoreLabels($storeLabels);
-                            $_option->setSortOrder(0);
-                            $_option->setIsDefault(false);
-                            $_attributeOptionManagement->add('catalog_product', $attributeId, $_option);
-                            $reloadOptions = true;
-                        }
-                    }
-                }
-                if ($reloadOptions) {
+                if (isset($attribute['taxonomy']) && $attribute['taxonomy'] == '1') {
                     $existingOptions = [];
+                    $existingAttribute = $this->_objectManager->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class)->load($attributeId);
+                    $attributeCode = $existingAttribute->getAttributeCode();
+                    $productAttributeRepository = $this->_objectManager->create(\Magento\Catalog\Model\Product\Attribute\Repository::class);
                     $options = $productAttributeRepository->get($attributeCode)->getOptions();
                     foreach ($options as $option) {
                         if (!empty(trim($option->getLabel()))) {
                             $existingOptions[$option->getLabel()] = $option->getValue();
                         }
                     }
+                    // Add Aditional Option.
+                    $reloadOptions = false;
+                    if (isset($attribute['value']['value']) && !empty($attribute['value']['value'])) {
+                        foreach ($attribute['value']['value'] as $valueKey => $value) {
+                            if (!array_key_exists($valueKey, $existingOptions)) {
+                                $storeOption = [];
+                                foreach ($websites as $webKey => $website) {
+                                    foreach ($website as $storeKey => $store) {
+                                        $storeLang = $store['lang'];
+                                        $storeOption[$storeKey] = isset($value->$storeLang) ? $value->$storeLang : $valueKey;
+                                    }
+                                }
+                                if (empty($storeOption)) {
+                                    $storeOption = [ $valueKey ];
+                                }
+
+                                $_option = $this->_objectManager->create(\Magento\Eav\Model\Entity\Attribute\Option::class);
+                                $_attributeOptionManagement = $this->_objectManager->create(\Magento\Eav\Api\AttributeOptionManagementInterface::class);
+                                $_attributeOptionLabel = $this->_objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
+
+                                $storeLabels = '';
+                                foreach ($storeOption as $sKey => $sOption) {
+                                    $_attributeOptionLabel2 = $this->_objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
+                                    $_attributeOptionLabel2->setStoreId($sKey);
+                                    $_attributeOptionLabel2->setLabel($sOption);
+                                    $storeLabels[$sKey] = $_attributeOptionLabel2;
+                                }
+                                $_attributeOptionLabel->setStoreId(0);
+                                $_attributeOptionLabel->setLabel($valueKey);
+                                $_option->setLabel($_attributeOptionLabel);
+                                $_option->setStoreLabels($storeLabels);
+                                $_option->setSortOrder(0);
+                                $_option->setIsDefault(false);
+                                $_attributeOptionManagement->add('catalog_product', $attributeId, $_option);
+                                $reloadOptions = true;
+                            }
+                        }
+                    }
+                    if ($reloadOptions) {
+                        $existingOptions = [];
+                        $options = $productAttributeRepository->get($attributeCode)->getOptions();
+                        foreach ($options as $option) {
+                            if (!empty(trim($option->getLabel()))) {
+                                $existingOptions[$option->getLabel()] = $option->getValue();
+                            }
+                        }
+                    }
+                    $formattedAttributes[$attribute['name']]['attr_id'] = $attributeId;
+                    $formattedAttributes[$attribute['name']]['attr_code'] = $attributeCode;
+                    $formattedAttributes[$attribute['name']]['attr_options'] = $existingOptions;
+                }else{
+                    $attValues = array();
+                    if (isset($attribute['value']['value']) && !empty($attribute['value']['value'])) {
+                        $attValues = $attribute['value']['value'];
+                    }
+                    $formattedAttributes['info_attribute'][$attributeCode] = $attValues;
                 }
-                $formattedAttributes[$attribute['name']]['attr_id'] = $attributeId;
-                $formattedAttributes[$attribute['name']]['attr_code'] = $attributeCode;
-                $formattedAttributes[$attribute['name']]['attr_options'] = $existingOptions;
             }
-            return $formattedAttributes;
         }
+        return $formattedAttributes;
     }
 
     /**
