@@ -713,6 +713,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 continue;
             }
             $attributeCode = $this->generateAttributeCode($attribute['attr_code']);
+            if (!isset($attribute['taxonomy'])) {
+                $attributeCode = $this->generateAttributeCode($attribute['attr_code'], true);
+            }
             $attributeId = $this->getAttributeId($attributeCode);
             $formattedAttributes[$attribute['name']] = [];
             $websites = $this->getWebsites();
@@ -909,8 +912,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
      * @param string $label
      * @return string
      */
-    protected function generateAttributeCode($label)
+    protected function generateAttributeCode($label, $isNormal = false)
     {
+        if( $isNormal){
+            $label = 'k_'.$label;
+        }
         $code = substr(
             preg_replace(
                 '/[^a-z_0-9]/',
