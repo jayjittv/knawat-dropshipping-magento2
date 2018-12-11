@@ -54,6 +54,21 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     protected $product;
 
     /**
+     * Directory List
+     *
+     * @var \Magento\Framework\App\Filesystem\DirectoryList
+     */
+    protected $directoryList;
+
+    /**
+     * File interface
+     *
+     * @var \Magento\Framework\Filesystem\Io\File
+     */
+    protected $file;
+
+
+    /**
      * Attribute set Collection Object.
      *
      * @var array
@@ -99,6 +114,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
         \Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory $attributeSetCollection,
         \Magento\Catalog\Model\Product $product,
+        \Magento\Framework\App\Filesystem\DirectoryList $directoryList,
+        \Magento\Framework\Filesystem\Io\File $file,
         \Magento\Catalog\Model\Product\Url $productUrl,
         ObjectManagerInterface $objectManager,
         \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory,
@@ -114,6 +131,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         $this->_objectManager = $objectManager;
         $this->_productUrl = $productUrl;
         $this->_eavSetupFactory = $eavSetupFactory;
+        $this->directoryList = $directoryList;
+        $this->file = $file;
         // Import parameters.
         $this->mpFactory = $mpFactory;
     }
@@ -236,6 +255,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
                 // Create Update Product Variations.
                 $associatedProductIds = [];
+                $associatedProductSkus = [];
                 $productResource = $this->_objectManager->create('\Magento\Catalog\Model\ResourceModel\Product');
                 try{
                     foreach ($variations as $variation) {
@@ -309,6 +329,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             $var_product->save();
                             $var_product_id = $var_product->getId();
                             $associatedProductIds[] = $var_product_id;
+                            $associatedProductSkus[] = $var_product->getSku();
                         }
                     }
 
@@ -322,16 +343,16 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         );
                         $main_product->save();
                         $data['updated'][] = $formated_data['id'];
-                        /* if( !empty( $associatedProductIds ) ){
+                        if( !empty( $associatedProductSkus ) ){
                             $linkManagement  = $this->_objectManager->create(\Magento\ConfigurableProduct\Model\LinkManagement::class );
-                            foreach( $associatedProductIds as $associatedProductId ){
+                            foreach( $associatedProductSkus as $associatedProductSku ){
                                 try {
-                                    $linkManagement->addChild($formated_data['id'], $associatedProductId);
+                                    $linkManagement->addChild($main_product->getSku(), $associatedProductSku);
                                 } catch (Exception $e) {
                                     // ignore.
                                 }
                             }
-                        } */
+                        }
                     }else{
                         // Main Product.
                         $main_product = $this->_objectManager->create('\Magento\Catalog\Model\Product');
@@ -372,6 +393,10 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 $main_product->setData($infoKey, $infoAttrib);
                             }
                         }
+
+                        if( isset( $formated_data['images'] ) && !empty( $formated_data['images'] ) ){
+                            $this->importImages( $main_product, $formated_data['images'] );
+                        }
                         $main_product->save();
                         $productId = $main_product->getId(); // Configurable Product Id
 
@@ -411,8 +436,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         }
                         $data['imported'][] = $productId;
                     }
-                } catch (\Exception $e) {
-                    echo $e->getMessage();
+                } catch (Exception $e) {
+                    // echo $e->getMessage();
                     if( isset( $formated_data['id'] ) ){
                         $data['failed'][] = $formated_data['id'];
                     }elseif( isset( $formated_data['sku'] ) ){
@@ -479,11 +504,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             $new_product['description_i18n'] = isset($product->description) ? $product->description : '';
 
             if (isset($product->images) && !empty($product->images)) {
-                $images = $product->images;
-                $new_product['main_image_id'] = array_shift($images);
-                if (! empty($images)) {
-                    $new_product['gallery_image_ids'] = $images;
-                }
+                $new_product['images'] = $product->images;
             }
 
             if (isset($product->attributes) && !empty($product->attributes)) {
@@ -552,7 +573,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 $temp_variant['manage_stock'] = true;
                 $temp_variant['stock_quantity'] = isset( $variation->quantity ) ? $variation->quantity : 0;
-                $temp_variant['stock_quantity'] = 20;
                 if ($varient_id && $varient_id > 0) {
                     // Update Data for existing Variend Here.
                 } else {
@@ -564,18 +584,16 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             if (!isset($attribute->name) || empty($attribute->name) || !isset($attribute->option)) {
                                 continue;
                             }
+                            $defaultCode =  isset($attribute->name->en) ?  $attribute->name->en : '';
+                            if (empty($defaultCode)) {
+                                $defaultCode =  isset($attribute->name->tr) ?  $attribute->name->tr : '';
+                            }
                             $defaultAttributeName = isset($attribute->name->$defaultLanguage) ? $attribute->name->$defaultLanguage : '';
                             $defaultAttributeValue = isset($attribute->option->$defaultLanguage) ? $attribute->option->$defaultLanguage : '';
                             if (empty($defaultAttributeName) || empty($defaultAttributeValue)) {
                                 continue;
                             }
 
-                            /* $temp_var_attribute = array();
-                            $temp_var_attribute[$defaultAttributeName] = $defaultAttributeValue; */
-                            // $temp_var_attribute['value'] = array( $temp_attribute_value );
-                            /* $temp_var_attribute['default_name'] = $defaultAttributeName;
-                            $temp_var_attribute['name'] = $attribute->name;
-                            $temp_var_attribute['value'] = $attribute->option; */
                             $temp_variant['raw_attributes'][$defaultAttributeName] = $defaultAttributeValue;
 
                             // Add attribute name to $var_attributes for make it taxonomy.
@@ -588,6 +606,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             } else {
                                 $attributes[ $defaultAttributeName ]['name_i18n'] = $attribute->name;
                                 $attributes[ $defaultAttributeName ]['value'][$defaultAttributeValue] = $attribute->option;
+                                $attributes[ $defaultAttributeName ]['attr_code'] = $defaultCode;
                             }
                         }
                         if( isset ($temp_variant['raw_attributes'] ) && !empty($temp_variant['raw_attributes'])){
@@ -1019,5 +1038,53 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 	 */
 	public function getImportParams(){
 		return $this->params;
-	}
+    }
+
+    /**
+     * Product Import Images from URL
+     *
+     * @param Product $product
+     * @param string $imageUrl
+     * @param array $imageType
+     * @param bool $visible
+     *
+     * @return bool
+     */
+    public function importImages($product, $imageUrls )
+    {
+        if( empty( $imageUrls ) ){
+            return false;
+        }
+
+        // Temporory Directory for Image.
+        $tmpDir = $this->directoryList->getPath(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA) . DIRECTORY_SEPARATOR . 'tmp';
+        // Create folder if it is not exists.
+        $this->file->checkAndCreateFolder($tmpDir);
+
+        foreach( $imageUrls as $index => $imageUrl){
+            // File Path for download image.
+            $newFileName = $tmpDir . DIRECTORY_SEPARATOR . mt_rand() . baseName($imageUrl);
+            $imageType = null;
+            if( $index == 0){
+                $imageType = ['image', 'small_image', 'thumbnail'];
+            }
+            // Download file from remote URL and Add to Temp Directory/
+            $ch = curl_init ( $imageUrl );
+            curl_setopt( $ch, CURLOPT_HEADER, 0 );
+            curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+            curl_setopt( $ch, CURLOPT_BINARYTRANSFER,1 );
+            curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, 0 );
+            curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 0 );
+            $raw_image_data = curl_exec( $ch );
+            curl_close ( $ch );
+            try{
+                $image = fopen( $newFileName,'w' );
+                fwrite( $image, $raw_image_data );
+                fclose( $image );
+            }catch( Exception $e ){
+                continue;
+            }
+            $product->addImageToMediaGallery($newFileName, $imageType, true, false);
+        }
+    }
 }
