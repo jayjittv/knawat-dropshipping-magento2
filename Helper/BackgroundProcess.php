@@ -243,8 +243,10 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
     public function lockProcess()
     {
         $this->start_time = time(); // Set start time of current process.
+
         $lock_duration = 120;
-        $this->cache->save($this->start_time, 'process_lock', ['lock_process'], $lock_duration);
+        $this->setConfig($this->identifier.'_process_lock', time() + $lock_duration );
+        // $this->cache->save($this->start_time, 'process_lock', ['lock_process'], $lock_duration);
     }
 
     /**
@@ -256,7 +258,8 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function unlockProcess()
     {
-        $this->cache->clean('lock_process');
+        $this->deleteConfig($this->identifier.'_process_lock');
+        // $this->cache->clean('lock_process');
         return $this;
     }
 
@@ -268,11 +271,23 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function isProcessRunning()
     {
-        if ($this->cache->load('process_lock')) {
-            // Process already running.
+        $importData = false;
+        $configConnection = $this->configModel->getConnection();
+        $select = $configConnection->select()->from($this->configModel->getMainTable())->where('path=?', $this->identifier.'_process_lock');
+        $lockData = $configConnection->fetchRow($select);
+        if (!empty($lockData) && isset($lockData['value'])) {
+            $lockData = $lockData['value'];
+            if (time() >= $lockData) {
+                return false;
+            }
             return true;
         }
         return false;
+        /* if ($this->cache->load('process_lock')) {
+            // Process already running.
+            return true;
+        }
+        return false; */
     }
 
     /**
