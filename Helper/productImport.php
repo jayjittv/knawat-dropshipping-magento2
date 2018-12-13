@@ -348,7 +348,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 try {
                                     $linkManagement->addChild($main_product->getSku(), $associatedProductSku);
                                 } catch (\Exception $e) {
-                                    // ignore.
+                                    // @todo logger here.
                                 }
                             }
                         }
@@ -448,9 +448,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->params['product_index'] = $index;
 
                 // Prevent Timeout and Memory exceed.
-                /* if ( $this->params['prevent_timeouts'] && ( $this->time_exceeded() || $this->memory_exceeded() ) ) {
+                if ($this->params['prevent_timeouts'] && ($this->timeExceeded() || $this->memoryExceeded())) {
                     break;
-                } */
+                }
             }
 
             if ($this->params['products_total'] === 0) {
@@ -466,170 +466,183 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
     public function getFormattedProducts($product)
     {
-        $default_lang = '';
-        if (empty($product)) {
-            return $product;
-        }
-        $defaultLanguage = 'en';
-        $websites = $this->getWebsites();
         $new_product = [];
-        $attributes = [];
-
-        $sku = $product->sku;
-        $product_id = $this->getProductBySku($sku);
-        if ($product_id) {
-            $new_product['id'] = $product_id;
-            $new_product['name'] = '';
-            if (isset($product->name->$defaultLanguage)) {
-                $new_product['name'] = $product->name->$defaultLanguage;
+        try {
+            $default_lang = '';
+            if (empty($product)) {
+                return $product;
             }
-        } else {
-            $new_product['sku'] = $product->sku;
-        }
-        if (!$product_id) {
-            if (isset($product->variations) && !empty($product->variations)) {
-                $new_product['type'] = 'configurable';
+            $defaultLanguage = 'en';
+            $websites = $this->getWebsites();
+            $attributes = [];
+
+            $sku = $product->sku;
+            $product_id = $this->getProductBySku($sku);
+            if ($product_id) {
+                $new_product['id'] = $product_id;
+                $new_product['name'] = '';
+                if (isset($product->name->$defaultLanguage)) {
+                    $new_product['name'] = $product->name->$defaultLanguage;
+                }
+            } else {
+                $new_product['sku'] = $product->sku;
             }
-            $default_lang = $this->getAdminLanguage();
-            $new_product['name'] = $new_product['description'] = '';
-            if (isset($product->name->$defaultLanguage)) {
-                $new_product['name'] = $product->name->$defaultLanguage;
-            }
-            if (isset($product->description->$defaultLanguage)) {
-                $new_product['description'] = $product->description->$defaultLanguage;
-            }
-            $new_product['name_i18n'] = isset($product->name) ? $product->name : '';
-            $new_product['description_i18n'] = isset($product->description) ? $product->description : '';
+            if (!$product_id) {
+                if (isset($product->variations) && !empty($product->variations)) {
+                    $new_product['type'] = 'configurable';
+                }
+                // $default_lang = $this->getAdminLanguage();
+                $new_product['name'] = $new_product['description'] = '';
+                if (isset($product->name->$defaultLanguage)) {
+                    $new_product['name'] = $product->name->$defaultLanguage;
+                }
+                if (isset($product->description->$defaultLanguage)) {
+                    $new_product['description'] = $product->description->$defaultLanguage;
+                }
+                $new_product['name_i18n'] = isset($product->name) ? $product->name : '';
+                $new_product['description_i18n'] = isset($product->description) ? $product->description : '';
 
-            if (isset($product->images) && !empty($product->images)) {
-                $new_product['images'] = $product->images;
-            }
+                if (isset($product->images) && !empty($product->images)) {
+                    $new_product['images'] = $product->images;
+                }
 
-            if (isset($product->attributes) && !empty($product->attributes)) {
-                foreach ($product->attributes as $attribute) {
-                    if (!isset($attribute->name) || empty($attribute->name)) {
-                        continue;
-                    }
-
-                    $defaultCode =  isset($attribute->name->en) ?  $attribute->name->en : '';
-                    if (empty($defaultCode)) {
-                        $defaultCode =  isset($attribute->name->tr) ?  $attribute->name->tr : '';
-                    }
-                    $attributeName = isset($attribute->name->$defaultLanguage) ?  $attribute->name->$defaultLanguage : '';
-
-                    // Continue if no attribute name found.
-                    if (empty($attributeName) || empty($defaultCode)) {
-                        continue;
-                    }
-
-                    $attributeOptions = [];
-                    if (isset($attribute->options) && !empty($attribute->options)) {
-                        foreach ($attribute->options as $attributeValue) {
-                            if (isset($attributeValue->$defaultLanguage)) {
-                                $attributeFormated = $attributeValue->$defaultLanguage;
-                            }
-                            if (!array_key_exists($attributeFormated, $attributeOptions) && !empty($attributeFormated)) {
-                                $attributeOptions[$attributeFormated] = $attributeValue;
-                            }
+                if (isset($product->attributes) && !empty($product->attributes)) {
+                    foreach ($product->attributes as $attribute) {
+                        if (!isset($attribute->name) || empty($attribute->name)) {
+                            continue;
                         }
-                    }
-                    $attributeOptions = [
-                        'name_i18n' => $attribute->name,
-                        'value'     => $attributeOptions,
-                        'attr_code' => $defaultCode
-                    ];
 
-                    if (isset($attributes[ $attributeName ])) {
-                        if (!empty($attributeOptions)) {
-                            $attributes[ $attributeName ] = array_unique(array_merge($attributes[ $attributeName ], $attributeOptions));
+                        $defaultCode =  isset($attribute->name->en) ?  $attribute->name->en : '';
+                        if (empty($defaultCode)) {
+                            $defaultCode =  isset($attribute->name->tr) ?  $attribute->name->tr : '';
                         }
-                    } else {
-                        $attributes[ $attributeName ] = $attributeOptions;
-                    }
-                }
-            }
-        }
+                        $attributeName = isset($attribute->name->$defaultLanguage) ?  $attribute->name->$defaultLanguage : '';
 
-        $variations = [];
-        $var_attributes = [];
-        if (isset($product->variations) && !empty($product->variations)) {
-            foreach ($product->variations as $variation) {
-                $temp_variant = [];
-                $varient_id = $this->getProductBySku($variation->sku);
-                if ($varient_id && $varient_id > 0) {
-                    $temp_variant['id'] = $varient_id;
-                } else {
-                    $temp_variant['sku']  = $variation->sku;
-                    $temp_variant['name'] = isset($new_product['name']) ? $new_product['name'] : '';
-                    $temp_variant['type'] = 'simple';
-                }
-                if (isset($variation->sale_price) && is_numeric($variation->sale_price)) {
-                    $temp_variant['price'] = $temp_variant['final_price'] = round(floatval($variation->sale_price), 2);
-                }
-                if (isset($variation->market_price) && is_numeric($variation->market_price)) {
-                    $temp_variant['regular_price'] = round(floatval($variation->market_price), 2);
-                }
-                $temp_variant['manage_stock'] = true;
-                $temp_variant['stock_quantity'] = isset($variation->quantity) ? $variation->quantity : 0;
-                if ($varient_id && $varient_id > 0) {
-                    // Update Data for existing Variend Here.
-                } else {
-                    $temp_variant['weight'] = isset($variation->weight) ? round(floatval($variation->weight), 2) : 0;
-                
-                    if (isset($variation->attributes) && !empty($variation->attributes)) {
-                        foreach ($variation->attributes as $attribute) {
-                            // continue if no attribute name found.
-                            if (!isset($attribute->name) || empty($attribute->name) || !isset($attribute->option)) {
-                                continue;
-                            }
-                            $defaultCode =  isset($attribute->name->en) ?  $attribute->name->en : '';
-                            if (empty($defaultCode)) {
-                                $defaultCode =  isset($attribute->name->tr) ?  $attribute->name->tr : '';
-                            }
-                            $defaultAttributeName = isset($attribute->name->$defaultLanguage) ? $attribute->name->$defaultLanguage : '';
-                            $defaultAttributeValue = isset($attribute->option->$defaultLanguage) ? $attribute->option->$defaultLanguage : '';
-                            if (empty($defaultAttributeName) || empty($defaultAttributeValue)) {
-                                continue;
-                            }
+                        // Continue if no attribute name found.
+                        if (empty($attributeName) || empty($defaultCode)) {
+                            continue;
+                        }
 
-                            $temp_variant['raw_attributes'][$defaultAttributeName] = $defaultAttributeValue;
-
-                            // Add attribute name to $var_attributes for make it taxonomy.
-                            $var_attributes[] = $defaultAttributeName;
-
-                            if (isset($attributes[ $defaultAttributeName ])) {
-                                if (!array_key_exists($defaultAttributeValue, $attributes[ $defaultAttributeName ]['value'])) {
-                                    $attributes[ $defaultAttributeName ]['value'][$defaultAttributeValue] = $attribute->option;
+                        $attributeOptions = [];
+                        if (isset($attribute->options) && !empty($attribute->options)) {
+                            foreach ($attribute->options as $attributeValue) {
+                                if (isset($attributeValue->$defaultLanguage)) {
+                                    $attributeFormated = $attributeValue->$defaultLanguage;
                                 }
-                            } else {
-                                $attributes[ $defaultAttributeName ]['name_i18n'] = $attribute->name;
-                                $attributes[ $defaultAttributeName ]['value'][$defaultAttributeValue] = $attribute->option;
-                                $attributes[ $defaultAttributeName ]['attr_code'] = $defaultCode;
+                                if (!array_key_exists($attributeFormated, $attributeOptions) && !empty($attributeFormated)) {
+                                    $attributeOptions[$attributeFormated] = $attributeValue;
+                                }
                             }
                         }
-                        if (isset($temp_variant['raw_attributes']) && !empty($temp_variant['raw_attributes'])) {
-                            $temp_variant['name'] .= '-'.implode('-', $temp_variant['raw_attributes']);
+                        $attributeOptions = [
+                            'name_i18n' => $attribute->name,
+                            'value'     => $attributeOptions,
+                            'attr_code' => $defaultCode
+                        ];
+
+                        if (isset($attributes[ $attributeName ])) {
+                            if (!empty($attributeOptions)) {
+                                $attributes[ $attributeName ] = array_unique(
+                                    array_merge($attributes[ $attributeName ], $attributeOptions)
+                                );
+                            }
+                        } else {
+                            $attributes[ $attributeName ] = $attributeOptions;
                         }
                     }
                 }
-                $variations[] = $temp_variant;
             }
-        }
-        if (!empty($attributes)) {
-            foreach ($attributes as $name => $value) {
-                $temp_raw = [];
-                $temp_raw['name'] = $name;
-                $temp_raw['value'] = $value;
-                $temp_raw['attr_code'] = isset($value['attr_code']) ? $value['attr_code'] : '';
-                $temp_raw['visible'] = true;
-                if (in_array($name, $var_attributes)) {
-                    $temp_raw['taxonomy'] = true;
-                    $temp_raw['default'] = isset($value[0]) ? $value[0] : '';
+
+            $variations = [];
+            $var_attributes = [];
+            if (isset($product->variations) && !empty($product->variations)) {
+                foreach ($product->variations as $variation) {
+                    $temp_variant = [];
+                    $varient_id = $this->getProductBySku($variation->sku);
+                    if ($varient_id && $varient_id > 0) {
+                        $temp_variant['id'] = $varient_id;
+                    } else {
+                        $temp_variant['sku']  = $variation->sku;
+                        $temp_variant['name'] = isset($new_product['name']) ? $new_product['name'] : '';
+                        $temp_variant['type'] = 'simple';
+                    }
+                    if (isset($variation->sale_price) && is_numeric($variation->sale_price)) {
+                        $temp_variant['price'] = $temp_variant['final_price'] = round(floatval($variation->sale_price), 2);
+                    }
+                    if (isset($variation->market_price) && is_numeric($variation->market_price)) {
+                        $temp_variant['regular_price'] = round(floatval($variation->market_price), 2);
+                    }
+                    $temp_variant['manage_stock'] = true;
+                    $temp_variant['stock_quantity'] = isset($variation->quantity) ? $variation->quantity : 0;
+                    $temp_variant['weight'] = isset($variation->weight) ? round(floatval($variation->weight), 2) : 0;
+                    if ($varient_id && $varient_id > 0 && $product_id) {
+                        // Update Data for existing Variend Here.
+                    } else {
+                        if (isset($variation->attributes) && !empty($variation->attributes)) {
+                            foreach ($variation->attributes as $attribute) {
+                                // continue if no attribute name found.
+                                if (!isset($attribute->name) || empty($attribute->name) || !isset($attribute->option)) {
+                                    continue;
+                                }
+                                $defaultCode =  isset($attribute->name->en) ?  $attribute->name->en : '';
+                                if (empty($defaultCode)) {
+                                    $defaultCode =  isset($attribute->name->tr) ?  $attribute->name->tr : '';
+                                }
+                                $defaultAttributeName = isset($attribute->name->$defaultLanguage) ? $attribute->name->$defaultLanguage : '';
+                                // Take a chance for not translated attributes
+                                if (empty($defaultAttributeName) && isset($attribute->name->tr)) {
+                                    $defaultAttributeName = $attribute->name->tr;
+                                }
+                                $defaultAttributeValue = isset($attribute->option->$defaultLanguage) ? $attribute->option->$defaultLanguage : '';
+                                // Take a chance for not translated attributes
+                                if (empty($defaultAttributeValue) && isset($attribute->option->tr)) {
+                                    $defaultAttributeValue = $attribute->option->tr;
+                                }
+                                if (empty($defaultAttributeName) || empty($defaultAttributeValue)) {
+                                    continue;
+                                }
+
+                                $temp_variant['raw_attributes'][$defaultAttributeName] = $defaultAttributeValue;
+
+                                // Add attribute name to $var_attributes for make it taxonomy.
+                                $var_attributes[] = $defaultAttributeName;
+
+                                if (isset($attributes[ $defaultAttributeName ])) {
+                                    if (!array_key_exists($defaultAttributeValue, $attributes[ $defaultAttributeName ]['value'])) {
+                                        $attributes[ $defaultAttributeName ]['value'][$defaultAttributeValue] = $attribute->option;
+                                    }
+                                } else {
+                                    $attributes[ $defaultAttributeName ]['name_i18n'] = $attribute->name;
+                                    $attributes[ $defaultAttributeName ]['value'][$defaultAttributeValue] = $attribute->option;
+                                    $attributes[ $defaultAttributeName ]['attr_code'] = $defaultCode;
+                                }
+                            }
+                            if (isset($temp_variant['raw_attributes']) && !empty($temp_variant['raw_attributes'])) {
+                                $temp_variant['name'] .= '-'.implode('-', $temp_variant['raw_attributes']);
+                            }
+                        }
+                    }
+                    $variations[] = $temp_variant;
                 }
-                $new_product['raw_attributes'][] = $temp_raw;
             }
+            if (!empty($attributes)) {
+                foreach ($attributes as $name => $value) {
+                    $temp_raw = [];
+                    $temp_raw['name'] = $name;
+                    $temp_raw['value'] = $value;
+                    $temp_raw['attr_code'] = isset($value['attr_code']) ? $value['attr_code'] : '';
+                    $temp_raw['visible'] = true;
+                    if (in_array($name, $var_attributes)) {
+                        $temp_raw['taxonomy'] = true;
+                        $temp_raw['default'] = isset($value[0]) ? $value[0] : '';
+                    }
+                    $new_product['raw_attributes'][] = $temp_raw;
+                }
+            }
+            $new_product['variations'] = $variations;
+        } catch (\Exception $e) {
+            // @todo logger here
         }
-        $new_product['variations'] = $variations;
         return $new_product;
     }
 
@@ -706,199 +719,204 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             return;
         }
         $formattedAttributes = [];
-        foreach ($attributes as $attribKey => $attribute) {
-            if (!isset($attribute['name']) || empty($attribute['name']) || !isset($attribute['attr_code']) || !isset($attribute['value'])) {
-                continue;
-            }
-            $attributeCode = $this->generateAttributeCode($attribute['attr_code']);
-            if (!isset($attribute['taxonomy'])) {
-                $attributeCode = $this->generateAttributeCode($attribute['attr_code'], true);
-            }
-            $attributeId = $this->getAttributeId($attributeCode);
-            $formattedAttributes[$attribute['name']] = [];
-            $websites = $this->getWebsites();
-            if (empty($attributeId)) {
-                $new_attribute = $this->_objectManager->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class);
-                $categorySetup = $this->_objectManager->create(\Magento\Catalog\Setup\CategorySetup::class);
-                $entityTypeId = $categorySetup->getEntityTypeId('catalog_product');
-                $storeLabels = [];
-                foreach ($websites as $webKey => $website) {
-                    foreach ($website as $storeKey => $store) {
-                        $storeLang = $store['lang'];
-                        $storeLabels[$storeKey] = isset($attribute['value']['name_i18n']->$storeLang) ? $attribute['value']['name_i18n']->$storeLang : $attribute['name'];
-                    }
+        try {
+            foreach ($attributes as $attribKey => $attribute) {
+                if (!isset($attribute['name']) || empty($attribute['name']) || !isset($attribute['attr_code']) || !isset($attribute['value'])) {
+                    continue;
                 }
-                if (empty($storeLabels)) {
-                    $storeLabels = [ $attribute['name'] ];
+                $attributeCode = $this->generateAttributeCode($attribute['attr_code']);
+                if (!isset($attribute['taxonomy'])) {
+                    $attributeCode = $this->generateAttributeCode($attribute['attr_code'], true);
                 }
-                if (isset($attribute['taxonomy']) && $attribute['taxonomy'] == '1') {
-                    // Create Dropdown Attribute
-                    $attributeValues = [];
-                    if (isset($attribute['value']['value']) && !empty($attribute['value']['value'])) {
-                        foreach ($attribute['value']['value'] as $valueKey => $value) {
-                            $storeValue = [];
-                            foreach ($websites as $webKey => $website) {
-                                foreach ($website as $storeKey => $store) {
-                                    $storeLang = $store['lang'];
-                                    $storeValue[$storeKey] = isset($value->$storeLang) ? $value->$storeLang : $valueKey;
-                                }
-                            }
-                            if (empty($storeValue)) {
-                                $storeValue = [ $valueKey ];
-                            }
-                            $attributeValues[$this->generateAttributeValueKey($valueKey)] = $storeValue;
+                $attributeId = $this->getAttributeId($attributeCode);
+                $formattedAttributes[$attribute['name']] = [];
+                $websites = $this->getWebsites();
+                if (empty($attributeId)) {
+                    $new_attribute = $this->_objectManager->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class);
+                    $categorySetup = $this->_objectManager->create(\Magento\Catalog\Setup\CategorySetup::class);
+                    $entityTypeId = $categorySetup->getEntityTypeId('catalog_product');
+                    $storeLabels = [];
+                    foreach ($websites as $webKey => $website) {
+                        foreach ($website as $storeKey => $store) {
+                            $storeLang = $store['lang'];
+                            $storeLabels[$storeKey] = isset($attribute['value']['name_i18n']->$storeLang) ? $attribute['value']['name_i18n']->$storeLang : $attribute['name'];
                         }
                     }
-                    $new_attribute->setData(
-                        [
-                            'attribute_code'                => $attributeCode,
-                            'entity_type_id'                => $entityTypeId,
-                            'is_global'                     => 1,
-                            'is_user_defined'               => 1,
-                            'frontend_input'                => 'select',
-                            'is_unique'                     => 0,
-                            'is_required'                   => 0,
-                            'is_searchable'                 => 1,
-                            'is_visible_in_advanced_search' => 1,
-                            'is_comparable'                 => 1,
-                            'is_filterable'                 => 1,
-                            'is_filterable_in_search'       => 0,
-                            'is_used_for_promo_rules'       => 0,
-                            'is_html_allowed_on_front'      => 0,
-                            'is_visible_on_front'           => 0,
-                            'used_in_product_listing'       => 0,
-                            'used_for_sort_by'              => 0,
-                            'frontend_label'                => $attribute['name'],
-                            'store_labels'                  => $storeLabels,
-                            'backend_type'                  => 'varchar',
-                            'backend_model'                 => \Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend::class,
-                            'option'                        => [ 'value' => $attributeValues ],
-                        ]
-                    );
-                    $new_attribute->save();
-                    /* Assign attribute to attribute set */
-                    $categorySetup->addAttributeToGroup('catalog_product', 'Knawat', 'General', $new_attribute->getId());
-
-                    $attributeId = $new_attribute->getId();
-                    $attributeCode = $new_attribute->getAttributeCode();
-                    $productAttributeRepository = $this->_objectManager->create(\Magento\Catalog\Model\Product\Attribute\Repository::class);
-                    $options = $productAttributeRepository->get($attributeCode)->getOptions();
-                    foreach ($options as $option) {
-                        if (!empty(trim($option->getLabel()))) {
-                            $existingOptions[$option->getLabel()] = $option->getValue();
-                        }
+                    if (empty($storeLabels)) {
+                        $storeLabels = [ $attribute['name'] ];
                     }
 
-                    $formattedAttributes[$attribute['name']]['attr_id'] = $attributeId;
-                    $formattedAttributes[$attribute['name']]['attr_code'] = $attributeCode;
-                    $formattedAttributes[$attribute['name']]['attr_options'] = $existingOptions;
-                } else {
-                    // Create Normal Attribute
-                    $new_attribute->setData(
-                        [
-                            'attribute_code'                => $attributeCode,
-                            'entity_type_id'                => $entityTypeId,
-                            'frontend_input'                => 'text',
-                            'is_global'                     => 0,
-                            'is_user_defined'               => 1,
-                            'is_unique'                     => 0,
-                            'is_required'                   => 0,
-                            'is_searchable'                 => 0,
-                            'is_visible_in_advanced_search' => 0,
-                            'is_comparable'                 => 0,
-                            'is_filterable'                 => 0,
-                            'is_filterable_in_search'       => 0,
-                            'is_used_for_promo_rules'       => 0,
-                            'is_html_allowed_on_front'      => 0,
-                            'is_visible_on_front'           => 1,
-                            'used_in_product_listing'       => 0,
-                            'used_for_sort_by'              => 0,
-                            'frontend_label'                => $attribute['name'],
-                            'store_labels'                  => $storeLabels,
-                            'backend_type'                  => 'text',
-                        ]
-                    );
-
-                    $new_attribute->save();
-                    /* Assign attribute to attribute set */
-                    $categorySetup->addAttributeToGroup('catalog_product', 'Knawat', 'Attributes', $new_attribute->getId());
-                    $attributeCode = $new_attribute->getAttributeCode();
-                    $attValues = [];
-                    if (isset($attribute['value']['value']) && !empty($attribute['value']['value'])) {
-                        $attValues = $attribute['value']['value'];
-                    }
-                    $formattedAttributes['info_attribute'][$attributeCode] = $attValues;
-                }
-            } else {
-                if (isset($attribute['taxonomy']) && $attribute['taxonomy'] == '1') {
-                    $existingOptions = [];
-                    $existingAttribute = $this->_objectManager->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class)->load($attributeId);
-                    $attributeCode = $existingAttribute->getAttributeCode();
-                    $productAttributeRepository = $this->_objectManager->create(\Magento\Catalog\Model\Product\Attribute\Repository::class);
-                    $options = $productAttributeRepository->get($attributeCode)->getOptions();
-                    foreach ($options as $option) {
-                        if (!empty(trim($option->getLabel()))) {
-                            $existingOptions[$option->getLabel()] = $option->getValue();
-                        }
-                    }
-                    // Add Aditional Option.
-                    $reloadOptions = false;
-                    if (isset($attribute['value']['value']) && !empty($attribute['value']['value'])) {
-                        foreach ($attribute['value']['value'] as $valueKey => $value) {
-                            if (!array_key_exists($valueKey, $existingOptions)) {
-                                $storeOption = [];
+                    if (isset($attribute['taxonomy']) && $attribute['taxonomy'] == '1') {
+                        // Create Dropdown Attribute
+                        $attributeValues = [];
+                        if (isset($attribute['value']['value']) && !empty($attribute['value']['value'])) {
+                            foreach ($attribute['value']['value'] as $valueKey => $value) {
+                                $storeValue = [];
                                 foreach ($websites as $webKey => $website) {
                                     foreach ($website as $storeKey => $store) {
                                         $storeLang = $store['lang'];
-                                        $storeOption[$storeKey] = isset($value->$storeLang) ? $value->$storeLang : $valueKey;
+                                        $storeValue[$storeKey] = isset($value->$storeLang) ? $value->$storeLang : $valueKey;
                                     }
                                 }
-                                if (empty($storeOption)) {
-                                    $storeOption = [ $valueKey ];
+                                if (empty($storeValue)) {
+                                    $storeValue = [ $valueKey ];
                                 }
-
-                                $_option = $this->_objectManager->create(\Magento\Eav\Model\Entity\Attribute\Option::class);
-                                $_attributeOptionManagement = $this->_objectManager->create(\Magento\Eav\Api\AttributeOptionManagementInterface::class);
-                                $_attributeOptionLabel = $this->_objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
-
-                                $storeLabels = '';
-                                foreach ($storeOption as $sKey => $sOption) {
-                                    $_attributeOptionLabel2 = $this->_objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
-                                    $_attributeOptionLabel2->setStoreId($sKey);
-                                    $_attributeOptionLabel2->setLabel($sOption);
-                                    $storeLabels[$sKey] = $_attributeOptionLabel2;
-                                }
-                                $_attributeOptionLabel->setStoreId(0);
-                                $_attributeOptionLabel->setLabel($valueKey);
-                                $_option->setLabel($_attributeOptionLabel);
-                                $_option->setStoreLabels($storeLabels);
-                                $_option->setSortOrder(0);
-                                $_option->setIsDefault(false);
-                                $_attributeOptionManagement->add('catalog_product', $attributeId, $_option);
-                                $reloadOptions = true;
+                                $attributeValues[$attributeCode.'_'.$this->generateAttributeValueKey($valueKey)] = $storeValue;
                             }
                         }
-                    }
-                    if ($reloadOptions) {
-                        $existingOptions = [];
+                        $new_attribute->setData(
+                            [
+                                'attribute_code'                => $attributeCode,
+                                'entity_type_id'                => $entityTypeId,
+                                'is_global'                     => 1,
+                                'is_user_defined'               => 1,
+                                'frontend_input'                => 'select',
+                                'is_unique'                     => 0,
+                                'is_required'                   => 0,
+                                'is_searchable'                 => 1,
+                                'is_visible_in_advanced_search' => 1,
+                                'is_comparable'                 => 1,
+                                'is_filterable'                 => 1,
+                                'is_filterable_in_search'       => 0,
+                                'is_used_for_promo_rules'       => 0,
+                                'is_html_allowed_on_front'      => 0,
+                                'is_visible_on_front'           => 0,
+                                'used_in_product_listing'       => 0,
+                                'used_for_sort_by'              => 0,
+                                'frontend_label'                => $attribute['name'],
+                                'store_labels'                  => $storeLabels,
+                                'backend_type'                  => 'varchar',
+                                'backend_model'                 => \Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend::class,
+                                'option'                        => [ 'value' => $attributeValues ],
+                            ]
+                        );
+                        $new_attribute->save();
+                        /* Assign attribute to attribute set */
+                        $categorySetup->addAttributeToGroup('catalog_product', 'Knawat', 'General', $new_attribute->getId());
+
+                        $attributeId = $new_attribute->getId();
+                        $attributeCode = $new_attribute->getAttributeCode();
+                        $productAttributeRepository = $this->_objectManager->create(\Magento\Catalog\Model\Product\Attribute\Repository::class);
                         $options = $productAttributeRepository->get($attributeCode)->getOptions();
                         foreach ($options as $option) {
                             if (!empty(trim($option->getLabel()))) {
                                 $existingOptions[$option->getLabel()] = $option->getValue();
                             }
                         }
+
+                        $formattedAttributes[$attribute['name']]['attr_id'] = $attributeId;
+                        $formattedAttributes[$attribute['name']]['attr_code'] = $attributeCode;
+                        $formattedAttributes[$attribute['name']]['attr_options'] = $existingOptions;
+                    } else {
+                        // Create Normal Attribute
+                        $new_attribute->setData(
+                            [
+                                'attribute_code'                => $attributeCode,
+                                'entity_type_id'                => $entityTypeId,
+                                'frontend_input'                => 'text',
+                                'is_global'                     => 0,
+                                'is_user_defined'               => 1,
+                                'is_unique'                     => 0,
+                                'is_required'                   => 0,
+                                'is_searchable'                 => 0,
+                                'is_visible_in_advanced_search' => 0,
+                                'is_comparable'                 => 0,
+                                'is_filterable'                 => 0,
+                                'is_filterable_in_search'       => 0,
+                                'is_used_for_promo_rules'       => 0,
+                                'is_html_allowed_on_front'      => 0,
+                                'is_visible_on_front'           => 1,
+                                'used_in_product_listing'       => 0,
+                                'used_for_sort_by'              => 0,
+                                'frontend_label'                => $attribute['name'],
+                                'store_labels'                  => $storeLabels,
+                                'backend_type'                  => 'text',
+                            ]
+                        );
+
+                        $new_attribute->save();
+                        /* Assign attribute to attribute set */
+                        $categorySetup->addAttributeToGroup('catalog_product', 'Knawat', 'Attributes', $new_attribute->getId());
+                        $attributeCode = $new_attribute->getAttributeCode();
+                        $attValues = [];
+                        if (isset($attribute['value']['value']) && !empty($attribute['value']['value'])) {
+                            $attValues = $attribute['value']['value'];
+                        }
+                        $formattedAttributes['info_attribute'][$attributeCode] = $attValues;
                     }
-                    $formattedAttributes[$attribute['name']]['attr_id'] = $attributeId;
-                    $formattedAttributes[$attribute['name']]['attr_code'] = $attributeCode;
-                    $formattedAttributes[$attribute['name']]['attr_options'] = $existingOptions;
                 } else {
-                    $attValues = [];
-                    if (isset($attribute['value']['value']) && !empty($attribute['value']['value'])) {
-                        $attValues = $attribute['value']['value'];
+                    if (isset($attribute['taxonomy']) && $attribute['taxonomy'] == '1') {
+                        $existingOptions = [];
+                        $existingAttribute = $this->_objectManager->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class)->load($attributeId);
+                        $attributeCode = $existingAttribute->getAttributeCode();
+                        $productAttributeRepository = $this->_objectManager->create(\Magento\Catalog\Model\Product\Attribute\Repository::class);
+                        $options = $productAttributeRepository->get($attributeCode)->getOptions();
+                        foreach ($options as $option) {
+                            if (!empty(trim($option->getLabel()))) {
+                                $existingOptions[$option->getLabel()] = $option->getValue();
+                            }
+                        }
+                        // Add Aditional Option.
+                        $reloadOptions = false;
+                        if (isset($attribute['value']['value']) && !empty($attribute['value']['value'])) {
+                            foreach ($attribute['value']['value'] as $valueKey => $value) {
+                                if (!array_key_exists($valueKey, $existingOptions)) {
+                                    $storeOption = [];
+                                    foreach ($websites as $webKey => $website) {
+                                        foreach ($website as $storeKey => $store) {
+                                            $storeLang = $store['lang'];
+                                            $storeOption[$storeKey] = isset($value->$storeLang) ? $value->$storeLang : $valueKey;
+                                        }
+                                    }
+                                    if (empty($storeOption)) {
+                                        $storeOption = [ $valueKey ];
+                                    }
+
+                                    $_option = $this->_objectManager->create(\Magento\Eav\Model\Entity\Attribute\Option::class);
+                                    $_attributeOptionManagement = $this->_objectManager->create(\Magento\Eav\Api\AttributeOptionManagementInterface::class);
+                                    $_attributeOptionLabel = $this->_objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
+
+                                    $storeLabels = '';
+                                    foreach ($storeOption as $sKey => $sOption) {
+                                        $_attributeOptionLabel2 = $this->_objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
+                                        $_attributeOptionLabel2->setStoreId($sKey);
+                                        $_attributeOptionLabel2->setLabel($sOption);
+                                        $storeLabels[$sKey] = $_attributeOptionLabel2;
+                                    }
+                                    $_attributeOptionLabel->setStoreId(0);
+                                    $_attributeOptionLabel->setLabel($valueKey);
+                                    $_option->setLabel($_attributeOptionLabel);
+                                    $_option->setStoreLabels($storeLabels);
+                                    $_option->setSortOrder(0);
+                                    $_option->setIsDefault(false);
+                                    $_attributeOptionManagement->add('catalog_product', $attributeId, $_option);
+                                    $reloadOptions = true;
+                                }
+                            }
+                        }
+                        if ($reloadOptions) {
+                            $existingOptions = [];
+                            $options = $productAttributeRepository->get($attributeCode)->getOptions();
+                            foreach ($options as $option) {
+                                if (!empty(trim($option->getLabel()))) {
+                                    $existingOptions[$option->getLabel()] = $option->getValue();
+                                }
+                            }
+                        }
+                        $formattedAttributes[$attribute['name']]['attr_id'] = $attributeId;
+                        $formattedAttributes[$attribute['name']]['attr_code'] = $attributeCode;
+                        $formattedAttributes[$attribute['name']]['attr_options'] = $existingOptions;
+                    } else {
+                        $attValues = [];
+                        if (isset($attribute['value']['value']) && !empty($attribute['value']['value'])) {
+                            $attValues = $attribute['value']['value'];
+                        }
+                        $formattedAttributes['info_attribute'][$attributeCode] = $attValues;
                     }
-                    $formattedAttributes['info_attribute'][$attributeCode] = $attValues;
                 }
             }
+        } catch (\Exception $e) {
+            // @todo logger here
         }
         return $formattedAttributes;
     }
@@ -1090,5 +1108,65 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             }
             $product->addImageToMediaGallery($newFileName, $imageType, true, false);
         }
+    }
+
+    /**
+     * Time exceeded.
+     *
+     * Ensures the batch never exceeds a sensible time limit.
+     * A timeout limit of 30s is common on shared hosting.
+     *
+     * @return bool
+     */
+    protected function timeExceeded()
+    {
+        $finish = $this->start_time + 20; // 20 seconds
+        if (time() >= $finish) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Memory exceeded
+     *
+     * Ensures the batch process never exceeds 90%
+     * of the maximum WordPress memory.
+     *
+     * @return bool
+     */
+    protected function memoryExceeded()
+    {
+        $memory_limit   = $this->getMemoryLimit() * 0.9; // 90% of max memory
+        $current_memory = memory_get_usage(true);
+
+        if ($current_memory >= $memory_limit) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Get memory limit
+     *
+     * @return int
+     */
+    public function getMemoryLimit()
+    {
+        if (function_exists('ini_get')) {
+            $memory_limit = ini_get('memory_limit');
+        } else {
+            // Sensible default.
+            $memory_limit = '128M';
+        }
+
+        if (! $memory_limit || -1 === intval($memory_limit)) {
+            // Unlimited, set to 32GB.
+            $memory_limit = '32000M';
+        }
+
+        return intval($memory_limit) * 1024 * 1024;
     }
 }
