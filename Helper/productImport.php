@@ -220,11 +220,16 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             $attributeSetId = $this->getAttrSetId('Knawat');
             $savedAttributes = [];
             foreach ($products as $index => $product) {
+                $logger = new \Zend\Log\Logger();
+                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/logforcurl.log');
+                $logger->addWriter($writer);
+
                 if ($index <= $this->params['product_index']) {
                     continue;
                 }
 
                 $formated_data = $this->getFormattedProducts($product);
+                // $logger->info("formated_data: " . print_r($formated_data, true));
                 if (empty($formated_data)) {
                     // Update product index
                     $this->params['product_index'] = $index;
@@ -252,9 +257,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $savedAttributes = $this->createUpdateAttributes($formated_data['raw_attributes'], $attributeSetId);
                     }
                 }
-
                 // Create Update Product Variations.
                 $associatedProductIds = [];
+                $existingAssociatedProductIds = [];
                 $associatedProductSkus = [];
                 $productResource = $this->_objectManager->create('\Magento\Catalog\Model\ResourceModel\Product');
                 try {
@@ -270,6 +275,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 ]
                             );
                             $var_product->save();
+                            $existingAssociatedProductIds[] = $var_product->getId();
                         } else {
                             if (empty($savedAttributes)) {
                                 if (isset($formated_data['raw_attributes'])) {
@@ -384,6 +390,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $this->_objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable')->setUsedProductAttributeIds($configurableAttributesIds, $main_product);
                         $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
                         $main_product->setAssociatedProductIds($associatedProductIds);// Setting Associated Products
+                        if (!empty($existingAssociatedProductIds)) {
+                            $existingAssociatedProductIds = array_merge($existingAssociatedProductIds, $associatedProductIds);
+                            // Set Existing Associated Products.
+                            $main_product->setAssociatedProductIds($existingAssociatedProductIds);
+                        }
                         $main_product->setCanSaveConfigurableAttributes(true);
                         if (isset($savedAttributes['info_attribute']) && !empty($savedAttributes['info_attribute'])) {
                             foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
@@ -437,6 +448,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                 } catch (\Exception $e) {
                     // echo $e->getMessage();
+                    $logger = new \Zend\Log\Logger();
+                    $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/logforcurl.log');
+                    $logger->addWriter($writer);
+                    $logger->info("Fatal Error: " . $e->getMessage());
+                    
                     if (isset($formated_data['id'])) {
                         $data['failed'][] = $formated_data['id'];
                     } elseif (isset($formated_data['sku'])) {
@@ -524,30 +540,33 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         }
 
                         $attributeOptions = [];
+                        $attributeFormated = '';
                         if (isset($attribute->options) && !empty($attribute->options)) {
                             foreach ($attribute->options as $attributeValue) {
-                                if (isset($attributeValue->$defaultLanguage)) {
-                                    $attributeFormated = $attributeValue->$defaultLanguage;
-                                }
+                                $attributeFormated = isset($attributeValue->$defaultLanguage) ? $attributeValue->$defaultLanguage : '';
+                                /* if (empty($attributeFormated) && isset($attributeValue->tr) ) {
+                                    $attributeFormated = $attributeValue->tr;
+                                } */
                                 if (!array_key_exists($attributeFormated, $attributeOptions) && !empty($attributeFormated)) {
                                     $attributeOptions[$attributeFormated] = $attributeValue;
                                 }
                             }
                         }
-                        $attributeOptions = [
-                            'name_i18n' => $attribute->name,
-                            'value'     => $attributeOptions,
-                            'attr_code' => $defaultCode
-                        ];
+                        if (!empty($attributeOptions) && is_array($attributeOptions)) {
+                            $attributeOptions = [
+                                'name_i18n' => $attribute->name,
+                                'value'     => $attributeOptions,
+                                'attr_code' => $defaultCode
+                            ];
+                        }
 
-                        if (isset($attributes[ $attributeName ])) {
-                            if (!empty($attributeOptions)) {
-                                $attributes[ $attributeName ] = array_unique(
+                        if (!empty($attributeOptions)) {
+                            if (!isset($attributes[$attributeName])) {
+                                $attributes[$attributeName] = $attributeOptions;
+                                /* $attributes[ $attributeName ] = array_unique(
                                     array_merge($attributes[ $attributeName ], $attributeOptions)
-                                );
+                                ); */
                             }
-                        } else {
-                            $attributes[ $attributeName ] = $attributeOptions;
                         }
                     }
                 }
@@ -618,7 +637,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 }
                             }
                             if (isset($temp_variant['raw_attributes']) && !empty($temp_variant['raw_attributes'])) {
-                                $temp_variant['name'] .= '-'.implode('-', $temp_variant['raw_attributes']);
+                                if (isset($temp_variant['name'])) {
+                                    $temp_variant['name'] .= '-'.implode('-', $temp_variant['raw_attributes']);
+                                }
                             }
                         }
                     }
@@ -641,6 +662,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             }
             $new_product['variations'] = $variations;
         } catch (\Exception $e) {
+            echo $e->getMessage();
             // @todo logger here
         }
         return $new_product;
@@ -1120,7 +1142,19 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
      */
     protected function timeExceeded()
     {
-        $finish = $this->start_time + 20; // 20 seconds
+        $max_time = 20; // 20 seconds.
+        if (function_exists('ini_get')) {
+            $max_execution_time = ini_get('max_execution_time');
+            if (is_numeric($max_execution_time) && $max_execution_time > 0) {
+                if ($max_execution_time >= 30) {
+                    $max_execution_time -= 10;
+                }
+                $max_time = $max_execution_time;
+            }
+        }
+        $time_limit = min(50, $max_time);
+
+        $finish = $this->start_time + $time_limit;
         if (time() >= $finish) {
             return true;
         } else {
