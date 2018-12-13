@@ -25,7 +25,7 @@
                 </field>
                 <field id="store_language" translate="label" type="select"
                        sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Select Option</label>
+                    <label>Select Language</label>
                     <source_model>Knawat\Dropshipping\Model\Config\Source\Language</source_model>
                 </field>
             </group>
