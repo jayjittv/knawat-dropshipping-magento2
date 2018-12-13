@@ -44,14 +44,17 @@ class Saveimport extends \Magento\Backend\App\Action
     public function execute()
     {
         try {
-            // @todo Add dynamic limit here.
+            $product_batch_size = $this->importer->getConfigData('product_batch_size');
+            if (empty($product_batch_size) || $product_batch_size < 0 || $product_batch_size > 100) {
+                $product_batch_size = 25;
+            }
             $data = [];
-            $data['limit'] = 5;
+            $data['limit'] = $product_batch_size;
             $this->backgroundHelper->pushToQueue($data)->dispatch();
         } catch (\Exception $e) {
             // ignore.
         }
-        return true;
+        $this->_redirect('dropshipping/dropshipping/import/');
     }
 
     /**

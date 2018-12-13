@@ -2,6 +2,7 @@
 
 namespace Knawat\Dropshipping\Block\Adminhtml;
 
+
 /**
  * Class Import
  * @package Knawat\Dropshipping\Block\Adminhtml
@@ -15,6 +16,11 @@ class Import extends \Magento\Backend\Block\Template
     protected $scopeConfig;
 
     /**
+     * @var \Magento\Config\Model\ResourceModel\Config
+     */
+    protected $configModel;
+
+    /**
      *knawat default configuration path value
      */
     const PATH_KNAWAT_DEFAULT = 'knawat/store/';
@@ -26,9 +32,11 @@ class Import extends \Magento\Backend\Block\Template
      */
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Config\Model\ResourceModel\Config $configModel
     ) {
         $this->scopeConfig = $scopeConfig;
+        $this->configModel = $configModel;
         parent::__construct($context);
     }
 
@@ -41,4 +49,25 @@ class Import extends \Magento\Backend\Block\Template
         $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
         return $this->scopeConfig->getValue(self::PATH_KNAWAT_DEFAULT.$path, $storeScope);
     }
+
+    /**
+     * @return bool|mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getImportStatus(){
+        $configConnection = $this->configModel->getConnection();
+        $identifier = 'kdropship_import';
+        $select = $configConnection->select()->from($this->configModel->getMainTable())->where('path=?', self::PATH_KNAWAT_DEFAULT.$identifier);
+        $configData = $configConnection->fetchRow($select);
+        if (!empty($configData) && isset($configData['value'])) {
+            $importData = $configData['value'];
+        }
+
+        if (!empty($importData)) {
+            $batch = @unserialize($importData);
+            return $batch;
+        }
+        return false;
+    }
+
 }

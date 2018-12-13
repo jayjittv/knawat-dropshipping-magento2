@@ -5,15 +5,70 @@
         </legend>
         <p><?php echo __('Plugin auto import/update products from knawat.com in background on regular interval. But, if you want then you can manually start import.') ?></p>
         <form class="form" action="<?php echo $this->getUrl("dropshipping/dropshipping/saveimport") ?>" method="post" name="import_form">
-            <input name="form_key" type="hidden" value="<?php /* @escapeNotVerified */ echo $block->getFormKey() ?>" />
-            <input type="hidden" id="product_batch_size" name="product_batch_size" value="<?php if(!empty($block->getConfigData('product_batch_size'))){ echo $block->getConfigData('product_batch_size');}?>">
+
             <div class="field knawat-admin-control">
                 <label for="start_stop_import" class="knawat-label">
-                    <span class="knawat-admin-label"><?php echo __('Start product import') ?></span>
+                    <span class="knawat-admin-label"><strong><?php echo __('Start product import') ?></strong></span>
                 </label>
-                <button type="submit" class="action submit primary input-text" title="<?php echo __('Start Import') ?>">
+                <button type="submit" class="action submit primary input-text" title="<?php echo __('Start Import') ?>" <?php if($block->getImportStatus()): echo "disabled";  endif; ?>>
                     <span><?php echo __('Start Import') ?></span>
                 </button>
+
+                <?php
+                if($block->getImportStatus()){
+                    $importData = $block->getImportStatus();
+                    if(array_key_exists('imported', $importData)){
+                        $imported = $importData['imported'];
+                    }
+                    if(array_key_exists('failed', $importData)){
+                        $failed = $importData['imported'];
+                    }
+                    if(array_key_exists('updated', $importData)){
+                        $updated = $importData['imported'];
+                    }
+                    if(array_key_exists('stopped', $importData)){
+                        $stopped = $importData['stopped'];
+                    } ?>
+                    <div class="knawat-admin-control">
+                        <label for="start_stop_import" class="knawat-label">
+                            <span class="knawat-admin-label"></span>
+                        </label>
+                        <span><i><?php echo __("Product import is in-progress already. you can't start import now. Please find current import status below."); ?></i></span>
+                    </div>
+                    <?php if(isset($imported)): ?>
+                        <div class="knawat-admin-control">
+                        <label for="start_stop_import" class="knawat-label">
+                            <span class="knawat-admin-label"></span>
+                        </label>
+                        <span><strong><?php echo __("Imported : "); ?></strong></span>
+                        <?php echo $imported; endif; ?>
+                    </div>
+                    <?php if(isset($failed)): ?>
+                        <div class="knawat-admin-control">
+                        <label for="start_stop_import" class="knawat-label">
+                            <span class="knawat-admin-label"></span>
+                        </label>
+                        <span><strong><?php echo __("Failed : "); ?></strong></span>
+                        <?php echo $failed; endif; ?>
+                    </div>
+                    <?php if(isset($updated)): ?>
+                        <div class="knawat-admin-control">
+                        <label for="start_stop_import" class="knawat-label">
+                            <span class="knawat-admin-label"></span>
+                        </label>
+                        <span><strong><?php echo __("Updated : "); ?></strong></span>
+                        <?php echo $updated; endif; ?>
+                    </div>
+                    <?php if(isset($stopped)): ?>
+                        <div class="knawat-admin-control">
+                        <label for="start_stop_import" class="knawat-label">
+                            <span class="knawat-admin-label"></span>
+                        </label>
+                        <span><strong><?php echo __("Stopped : "); ?></strong></span>
+                        <?php echo $stopped; endif; ?>
+                    </div>
+                <?php }
+                ?>
             </div>
         </form>
     </fieldset>
