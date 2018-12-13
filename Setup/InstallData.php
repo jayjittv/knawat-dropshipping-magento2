@@ -39,6 +39,10 @@ class InstallData implements InstallDataInterface
      */
     protected $categorySetupFactory;
     /**
+     * @var eavAttribute
+     */
+    protected $eavAttribute;
+    /**
      * Init
      *
      * @param EavSetupFactory $eavSetupFactory
@@ -47,7 +51,8 @@ class InstallData implements InstallDataInterface
         EavSetupFactory $eavSetupFactory,
         \Magento\Sales\Setup\SalesSetupFactory $salesSetupFactory,
         AttributeSetFactory $attributeSetFactory,
-        CategorySetupFactory $categorySetupFactory
+        CategorySetupFactory $categorySetupFactory,
+        \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute
     ) {
 
         $this->eavSetupFactory = $eavSetupFactory;
@@ -55,6 +60,7 @@ class InstallData implements InstallDataInterface
         $this->attributeSetFactory = $attributeSetFactory;
         $this->attributeSetFactory = $attributeSetFactory;
         $this->categorySetupFactory = $categorySetupFactory;
+        $this->eavAttribute = $eavAttribute;
     }
 
     /**
@@ -66,12 +72,16 @@ class InstallData implements InstallDataInterface
         $installer = $setup;
         $installer->startSetup();
         /*create Knawat Attribute set*/
-        $categorySetup = $this->categorySetupFactory->create(['setup' => $setup]);
-        $attributeSet = $this->attributeSetFactory->create();
-        $attributeSet = $this->attributeSetFactory->create();
-        $entityTypeId = $categorySetup->getEntityTypeId(\Magento\Catalog\Model\Product::ENTITY);
-        $attributeSetId = $categorySetup->getDefaultAttributeSetId($entityTypeId);
-        $data = [
+        $attributeSetIds = 0;
+        $attributeModel = $this->attributeSetFactory->create()->load('Knawat','attribute_set_name');
+        $attributeSetIds = $attributeModel->getAttributeSetId();
+        if($attributeSetIds == 0){
+            $categorySetup = $this->categorySetupFactory->create(['setup' => $setup]);
+            $attributeSet = $this->attributeSetFactory->create();
+            $attributeSet = $this->attributeSetFactory->create();
+            $entityTypeId = $categorySetup->getEntityTypeId(\Magento\Catalog\Model\Product::ENTITY);
+            $attributeSetId = $categorySetup->getDefaultAttributeSetId($entityTypeId);
+            $data = [
             'attribute_set_name' => 'Knawat', // define custom attribute set name here
             'entity_type_id' => $entityTypeId,
             'sort_order' => 200,
@@ -81,14 +91,16 @@ class InstallData implements InstallDataInterface
         $attributeSet->save();
         $attributeSet->initFromSkeleton($attributeSetId);
         $attributeSet->save();
-        /** @var EavSetup $eavSetup */
-        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+    }
+    /** @var EavSetup $eavSetup */
+    $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
         // /**
         //  * Add attributes to the eav/attribute
         //  * create is_knawat Attribute for product
         //  */
-        $eavSetup->removeAttribute(\Magento\Catalog\Model\Product::ENTITY, 'is_knawat');
+    $attributeId = $this->eavAttribute->getIdByCode(\Magento\Catalog\Model\Product::ENTITY, 'is_knawat');
+    if(!$attributeId) {
         $eavSetup->addAttribute(
             \Magento\Catalog\Model\Product::ENTITY,
             'is_knawat', /* Custom Attribute Code */
@@ -114,18 +126,18 @@ class InstallData implements InstallDataInterface
                 'unique' => false
             ]
         );
-
+    }
         // /**
         //  * Add attributes to the Sales Ortder
         //  * create is_knawat Attribute for order
         //  */
-        $salesSetup = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $installer]);
-        $salesSetup->addAttribute(Order::ENTITY, 'is_knawat', [
-            'type' => \Magento\Framework\DB\Ddl\Table::TYPE_SMALLINT,
-            'default' => '0',
-            'visible' => false,
-            'nullable' => true
-        ]);
+    $salesSetup = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $installer]);
+    $salesSetup->addAttribute(Order::ENTITY, 'is_knawat', [
+        'type' => \Magento\Framework\DB\Ddl\Table::TYPE_SMALLINT,
+        'default' => '0',
+        'visible' => false,
+        'nullable' => true
+    ]);
         /**
          * create knawat_order_id Attribute for order
          */
