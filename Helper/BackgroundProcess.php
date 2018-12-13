@@ -196,7 +196,6 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
             // Update or delete current batch.
             if (! empty($batch)) {
                 $this->setConfig($this->identifier, serialize($batch));
-                $this->deleteConfig($this->identifier);
             } else {
                 $this->deleteConfig($this->identifier);
             }
@@ -318,7 +317,19 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
      */
     protected function timeExceeded()
     {
-        $finish = $this->start_time + 20; // 20 seconds
+        $max_time = 20; // 20 seconds.
+        if (function_exists('ini_get')) {
+            $max_execution_time = ini_get('max_execution_time');
+            if (is_numeric($max_execution_time) && $max_execution_time > 0) {
+                if ($max_execution_time >= 30) {
+                    $max_execution_time -= 10;
+                }
+                $max_time = $max_execution_time;
+            }
+        }
+        $time_limit = min(50, $max_time);
+
+        $finish = $this->start_time + $time_limit;
         if (time() >= $finish) {
             return true;
         } else {
