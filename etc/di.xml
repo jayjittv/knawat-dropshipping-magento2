@@ -1,11 +1,14 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid" type="Magento\Sales\Model\ResourceModel\Grid">
-        <arguments>
-            <argument name="columns" xsi:type="array">
-                <item name="knawat_order_status" xsi:type="string">sales_order.knawat_order_status</item>
-            </argument>
-        </arguments>
-    </virtualType>
-    <preference for="Magento\Config\Controller\Adminhtml\System\Config\Index" type="Knawat\Dropshipping\Controller\Adminhtml\System\Config\Index" />
+	<virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid" type="Magento\Sales\Model\ResourceModel\Grid">
+		<arguments>
+			<argument name="columns" xsi:type="array">
+				<item name="knawat_order_status" xsi:type="string">sales_order.knawat_order_status</item>
+			</argument>
+		</arguments>
+	</virtualType>
+	<preference for="Magento\Config\Controller\Adminhtml\System\Config\Index" type="Knawat\Dropshipping\Controller\Adminhtml\System\Config\Index" />
+	<type name="Magento\Catalog\Controller\Product\View">
+		<plugin name="productview" type="Knawat\Dropshipping\Plugin\Product\View" sortOrder="1" />
+	</type>
 </config>
