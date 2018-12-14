@@ -1032,7 +1032,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             $storeConfigLanguage = $this->getConfigData('store_language', "stores", $storeId);
             if (!empty($storeConfigLanguage)) {
                 $storeData['lang'] = $storeConfigLanguage;
-                $websiteConfigLanguage = $this->getConfigData('store_language', "stores", $websiteId);
+            }
+            if (empty($storeConfigLanguage)) {
+                $websiteConfigLanguage = $this->getConfigData('store_language', "websites", $websiteId);
                 if (!empty($websiteConfigLanguage)) {
                     $storeData['lang'] = $websiteConfigLanguage;
                 }
