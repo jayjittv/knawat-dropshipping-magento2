@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <job name="update_product_params" instance="Knawat\Dropshipping\Cron\ParamUpdate" method="execute">
+            <schedule>0 * * * *</schedule>
+        </job>
+        <job name="import_product" instance="Knawat\Dropshipping\Cron\ProductUpdate" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
+    </group>
+</config>

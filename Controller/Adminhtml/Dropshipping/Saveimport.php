@@ -11,30 +11,24 @@ use Magento\Framework\View\Result\PageFactory;
  */
 class Saveimport extends \Magento\Backend\App\Action
 {
-    /**
-     * @var \Knawat\Dropshipping\Helper\ProductImport
-     */
-    protected $importer;
 
     /**
-     * @var \Knawat\Dropshipping\Helper\BackgroundProcess
+     * @var \Knawat\Dropshipping\Helper\CommonHelper
      */
-    protected $backgroundHelper;
+    protected $commonHelper;
+
 
     /**
-     * Edit constructor.
+     * Saveimport constructor.
      * @param Context $context
-     * @param \Magento\Framework\App\Config\ConfigResource\ConfigInterface $configInterface
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Knawat\Dropshipping\Helper\CommonHelper $commonHelper
      */
     public function __construct(
         Context $context,
-        \Knawat\Dropshipping\Helper\ProductImport $importer,
-        \Knawat\Dropshipping\Helper\BackgroundImport $backgroundHelper
+        \Knawat\Dropshipping\Helper\CommonHelper $commonHelper
     ) {
         parent::__construct($context);
-        $this->importer = $importer;
-        $this->backgroundHelper = $backgroundHelper;
+        $this->commonHelper = $commonHelper;
     }
 
     /**
@@ -43,17 +37,7 @@ class Saveimport extends \Magento\Backend\App\Action
      */
     public function execute()
     {
-        try {
-            $product_batch_size = $this->importer->getConfigData('product_batch_size');
-            if (empty($product_batch_size) || $product_batch_size < 0 || $product_batch_size > 100) {
-                $product_batch_size = 25;
-            }
-            $data = [];
-            $data['limit'] = $product_batch_size;
-            $this->backgroundHelper->pushToQueue($data)->dispatch();
-        } catch (\Exception $e) {
-            // ignore.
-        }
+        $this->commonHelper->runImport();
         $this->_redirect('dropshipping/dropshipping/import/');
     }
 
