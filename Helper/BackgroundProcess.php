@@ -121,6 +121,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Dispatch Async request.
      *
+     * @access public
      * @return void
      */
     public function dispatch()
@@ -142,6 +143,12 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
         return true;
     }
 
+    /**
+     * Maybe process queue
+     *
+     * Checks whether data exists within the queue and that
+     * the process is not already running.
+     */
     public function maybeHandle()
     {
         // Don't lock up other requests while processing
@@ -162,21 +169,48 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
         die();
     }
 
+    /**
+     * Handle cron healthcheck
+     *
+     * Restart the background process if not already running
+     * and data exists in the queue.
+     */
+    public function cronHealthCheck()
+    {
+        if ($this->isProcessRunning()) {
+            // Background process already running.
+            die();
+        }
+
+        if ($this->isQueueEmpty()) {
+            exit();
+        }
+
+        $this->handle();
+        die();
+    }
+
+    /**
+     * Push to queue
+     *
+     * @param mixed $data Data.
+     *
+     * @return $this
+     */
     public function pushToQueue($data)
     {
         if (!empty($data)) {
             $this->setConfig($this->identifier, serialize($data));
         }
         return $this;
-        /* $product_batch_size = $this->getConfigData('product_batch_size');
-
-        if (empty($product_batch_size) || $product_batch_size < 0 || $product_batch_size > 100) {
-            $product_batch_size = 25;
-        }
-        $data = [];
-        $data['limit'] = $product_batch_size; */
     }
 
+    /**
+     * Handle
+     *
+     * Pass each queue item to the task handler, while remaining
+     * within server memory and time limit constraints.
+     */
     public function handle()
     {
         // Lock Process
@@ -245,7 +279,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
         $this->start_time = time(); // Set start time of current process.
 
         $lock_duration = 120;
-        $this->setConfig($this->identifier.'_process_lock', time() + $lock_duration );
+        $this->setConfig($this->identifier.'_process_lock', time() + $lock_duration);
         // $this->cache->save($this->start_time, 'process_lock', ['lock_process'], $lock_duration);
     }
 
