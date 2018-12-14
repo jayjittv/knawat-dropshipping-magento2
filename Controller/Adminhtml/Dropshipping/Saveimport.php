@@ -38,6 +38,7 @@ class Saveimport extends \Magento\Backend\App\Action
     public function execute()
     {
         $this->commonHelper->runImport();
+        // Redirect to import page.
         $this->_redirect('dropshipping/dropshipping/import/');
     }
 

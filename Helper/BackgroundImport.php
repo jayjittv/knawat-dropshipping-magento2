@@ -19,6 +19,11 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
     protected $importer;
 
     /**
+     * @var \Magento\Framework\App\CacheInterface
+     */
+    protected $cache;
+
+    /**
      * BackgroundImport constructor.
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Knawat\Dropshipping\Helper\ProductImport $importer
@@ -45,6 +50,7 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
             $configModel
         );
         $this->importer = $importer;
+        $this->cache = $cache;
     }
 
     /**
@@ -63,13 +69,6 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
         $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/logforcurl.log');
         $logger->addWriter($writer);
         $logger->info("Item: " . print_r($item, true));
-
-        /* $item['limit']  = $item['limit'] + 1;
-        if ($item['limit'] < 18) {
-            return $item;
-        }
-        $logger->info('process done'.print_r($item, true));
-        return false; */
 
         $results = $this->importer->import('full', $item);
         $logger->info("Results: " . print_r($results, true));
@@ -90,9 +89,10 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
             // update option on import finish.
             // update_option( 'knawat_full_import', 'done', false );
             // update_option( 'knawat_last_imported', time(), false );
-            // // Logs import data
-            // knawat_dropshipwc_logger( '[IMPORT_STATS_FINAL]'.print_r( $item, true ), 'info' );
-            // knawat_dropshipwc_logger( '[FAILED_IMPORTS]'.print_r( $error_log, true ) );
+
+            // Logs import data
+            $logger->info("[IMPORT_STATS_FINAL]" . print_r($item, true));
+
             // Return false to complete background import.
             return false;
         } else {

@@ -426,4 +426,17 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
 
         return intval($memory_limit) * 1024 * 1024;
     }
+
+    /**
+     * Kill process.
+     *
+     * Stop processing queue items, clear cronjob and delete all batches.
+     */
+    public function killProcess()
+    {
+        if (! $this->isQueueEmpty()) {
+            // Delete Database Batch
+            $this->deleteConfig($this->identifier);
+        }
+    }
 }

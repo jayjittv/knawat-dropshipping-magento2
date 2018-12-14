@@ -128,9 +128,10 @@ class CommonHelper extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return bool
      */
-    public function runImport(){
+    public function runImport()
+    {
         $importStatus = $this->backgroundHelper->isQueueEmpty();
-        if( !$importStatus ){
+        if (!$importStatus) {
             return false;
         }
 
@@ -152,6 +153,23 @@ class CommonHelper extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Stop the Current Running Import
+     *
+     * @return bool
+     */
+    public function stopImport()
+    {
+        try {
+            $this->backgroundHelper->killProcess();
+        } catch (\Exception $e) {
+            // ignore.
+        }
+        return true;
+    }
+
+    /**
+     * Run New import Process
+     *
      * @return Logger
      */
     public function getLogger()
