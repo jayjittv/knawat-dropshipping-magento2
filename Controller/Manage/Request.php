@@ -9,9 +9,9 @@ use \Magento\Framework\App\Action\Action;
  */
 class Request extends Action
 {
-    
-  /** @var  \Magento\Framework\View\Result\Page */
-  protected $resultPageFactory;
+
+    /** @var  \Magento\Framework\View\Result\Page */
+    protected $resultPageFactory;
 
     /**
      * @var \Knawat\Dropshipping\Helper\BackgroundImport
@@ -25,8 +25,7 @@ class Request extends Action
         \Magento\Framework\App\Action\Context $context,
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
         \Knawat\Dropshipping\Helper\BackgroundImport $backgroundImport
-    )
-    {
+    ) {
         $this->resultPageFactory = $resultPageFactory;
         $this->backgroundImport = $backgroundImport;
         parent::__construct($context);
@@ -38,7 +37,6 @@ class Request extends Action
      */
     public function execute()
     {
-            $this->backgroundImport->maybeHandle();
+        $this->backgroundImport->maybeHandle();
     }
-
 }

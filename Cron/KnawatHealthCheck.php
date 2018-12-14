@@ -2,10 +2,10 @@
 namespace Knawat\Dropshipping\Cron;
 
 /**
- * Class ProductUpdate
+ * Class KnawatHealthCheck
  * @package Knawat\Dropshipping\Cron
  */
-class ProductUpdate
+class KnawatHealthCheck
 {
     /**
      * @var \Knawat\Dropshipping\Helper\BackgroundImport
@@ -13,7 +13,7 @@ class ProductUpdate
     protected $backgroundHelper;
 
     /**
-     * ProductUpdate constructor.
+     * KnawatHealthCheck constructor.
      * @param \Knawat\Dropshipping\Helper\BackgroundImport $backgroundHelper
      */
     public function __construct(
@@ -24,7 +24,7 @@ class ProductUpdate
     }
 
     /**
-     * execute import process 
+     * Execute import process.
      */
     public function execute()
     {

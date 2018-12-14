@@ -156,17 +156,17 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
 
         if ($this->isProcessRunning()) {
             // Background process already running.
-            die();
+            return false;
         }
 
         if ($this->isQueueEmpty()) {
-            exit();
+            return false;
         }
 
         // @todo  Security Validation.
         // check_ajax_referer( $this->identifier, 'nonce' );
         $this->handle();
-        die();
+        return false;
     }
 
     /**
@@ -179,15 +179,14 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
     {
         if ($this->isProcessRunning()) {
             // Background process already running.
-            die();
+            return false;
         }
 
         if ($this->isQueueEmpty()) {
-            exit();
+            return false;
         }
-
         $this->handle();
-        die();
+        return false;
     }
 
     /**
