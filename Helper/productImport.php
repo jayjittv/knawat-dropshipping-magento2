@@ -76,6 +76,13 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     protected $_attributeSetCollection;
 
     /**
+     * Translit Name to URL key.
+     *
+     * @var \Magento\Framework\Filter\TranslitUrl
+     */
+    protected $translitUrl;
+
+    /**
      * Import Type
      *
      * @var string
@@ -119,6 +126,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Catalog\Model\Product\Url $productUrl,
         ObjectManagerInterface $objectManager,
         \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory,
+        \Magento\Framework\Filter\TranslitUrl $translitUrl,
         \Knawat\MPFactory $mpFactory
     ) {
         parent::__construct($context);
@@ -133,6 +141,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         $this->_eavSetupFactory = $eavSetupFactory;
         $this->directoryList = $directoryList;
         $this->file = $file;
+        $this->translitUrl = $translitUrl;
         // Import parameters.
         $this->mpFactory = $mpFactory;
     }
@@ -155,7 +164,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             'skipped'           => 0
         ];
         $this->params = array_merge($default_args, $params);
-        $defaultLanguage = 'en';
+        $defaultLanguage = $this->getDefaultLanguage();
         $mp = $this->createMP();
         $websites = $this->getWebsites(false);
         if (empty($websites)) {
@@ -363,6 +372,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $main_product = $this->_objectManager->create('\Magento\Catalog\Model\Product');
                         $main_product->setSku($formated_data['sku']); // Set your sku here
                         $main_product->setName($formated_data['name']); // Name of Product
+                        $main_product->setUrlKey($this->translitUrl->filter($formated_data['name'].' '.$formated_data['sku']));
                         $main_product->setDescription($formated_data['description']); // Descripion of Product
                         $main_product->setAttributeSetId($attributeSetId); // Attribute set id
                         $main_product->setStatus(1);
@@ -484,11 +494,10 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $new_product = [];
         try {
-            $default_lang = '';
             if (empty($product)) {
                 return $product;
             }
-            $defaultLanguage = 'en';
+            $defaultLanguage = $this->getDefaultLanguage();
             $websites = $this->getWebsites();
             $attributes = [];
 
@@ -507,7 +516,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 if (isset($product->variations) && !empty($product->variations)) {
                     $new_product['type'] = 'configurable';
                 }
-                // $default_lang = $this->getAdminLanguage();
                 $new_product['name'] = $new_product['description'] = '';
                 if (isset($product->name->$defaultLanguage)) {
                     $new_product['name'] = $product->name->$defaultLanguage;
@@ -677,26 +685,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     public function getProductBySku($sku)
     {
         return $product = $this->_productModel->getIdBySku($sku);
-    }
-
-    /**
-     * Get Admin interface Language
-     *
-     * @return string Language Code
-     */
-    public function getAdminLanguage()
-    {
-        $language = $this->authSession->getUser()->getInterfaceLocale();
-        $language = explode(',', $language);
-        if (array_key_exists(0, $language)) {
-            $language_code = explode('_', $language[0]);
-            if ($language_code[0] == 'ar' || $language_code[0] == 'en' || $language_code[0] == 'tr') {
-                $language_identifier = $language_code[0];
-            } else {
-                $language_identifier = "en";
-            }
-        }
-        return $language_identifier;
     }
 
     /**
@@ -1055,6 +1043,35 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get Websites with store views and languages
+     *
+     * @param  boolean $withAdmin
+     * @return array websites
+     */
+    protected function getDefaultLanguage()
+    {
+        $defaultConfigLanguage = $this->getConfigData('store_language');
+        if (empty($defaultConfigLanguage)) {
+            $defaultConfigLanguage = 'en';
+            $_storeRepository = $this->_objectManager->create('Magento\Store\Model\StoreRepository');
+            $stores = $_storeRepository->getList();
+            foreach ($stores as $store) {
+                if ($store["code"] == 'admin') {
+                    continue;
+                }
+                $websiteConsumerKey = $this->getConfigData('consumer_key', "websites", $websiteId);
+                $websiteConsumerSecret = $this->getConfigData('consumer_secret', "websites", $websiteId);
+                $websiteConfigLanguage = $this->getConfigData('store_language', "websites", $websiteId);
+                if (!empty($websiteConsumerKey) && !empty($websiteConsumerSecret) && !empty($websiteConfigLanguage)) {
+                    $defaultConfigLanguage = $websiteConfigLanguage;
+                    break;
+                }
+            }
+        }
+        return $defaultConfigLanguage;
+    }
+
+    /**
      * @return MP
      */
     protected function createMP()
@@ -1125,10 +1142,10 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $image = fopen($newFileName, 'w');
                 fwrite($image, $raw_image_data);
                 fclose($image);
+                $product->addImageToMediaGallery($newFileName, $imageType, true, false);
             } catch (\Exception $e) {
                 continue;
             }
-            $product->addImageToMediaGallery($newFileName, $imageType, true, false);
         }
     }
 
