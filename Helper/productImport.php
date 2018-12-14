@@ -376,6 +376,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $main_product->setDescription($formated_data['description']); // Descripion of Product
                         $main_product->setAttributeSetId($attributeSetId); // Attribute set id
                         $main_product->setStatus(1);
+                        $main_product->setData('is_knawat', 1); // $product is product model's object
                         $main_product->setTypeId('configurable');
                         $main_product->setWebsiteIds(array_keys($websites));
                         $main_product->setCategoryIds([2]);
