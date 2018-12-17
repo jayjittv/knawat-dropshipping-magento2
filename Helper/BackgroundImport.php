@@ -78,6 +78,17 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
             return false;
         }
 
+        $identifier = $this->getIdentifier();
+        $stopImportPath = $identifier.'_stop_import';
+        $stopImport = $this->getConfigDirect($stopImportPath);
+        if ($stopImport) {
+            if ($stopImport > time()) {
+                $params['is_complete'] = true;
+                $params['force_stopped'] = true;
+            }
+            $this->deleteConfig($stopImportPath);
+        }
+
         if ($params['is_complete']) {
             // Send success.
             $item = $params;
@@ -86,9 +97,15 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
             $item['updated']  += count($results['updated']);
             $item['skipped']  += count($results['skipped']);
 
-            // update option on import finish.
-            // update_option( 'knawat_full_import', 'done', false );
-            // update_option( 'knawat_last_imported', time(), false );
+            if (!isset($params['force_stopped'])) {
+                // update option on import finish.
+                $startTime = $this->getConfigDirect($identifier.'_start_time');
+                if (empty($startTime)) {
+                    $startTime = time();
+                }
+                $lastImportPath = parent::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
+                $this->setConfig($lastImportPath, $startTime);
+            }
 
             // Logs import data
             $logger->info("[IMPORT_STATS_FINAL]" . print_r($item, true));

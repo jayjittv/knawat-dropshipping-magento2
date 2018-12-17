@@ -144,7 +144,7 @@ class CommonHelper extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 $data = [];
                 $data['limit'] = $product_batch_size;
-                $this->backgroundHelper->pushToQueue($data)->dispatch();
+                $this->backgroundHelper->pushToQueue($data)->dispatch(true);
             } catch (\Exception $e) {
                 // ignore.
             }

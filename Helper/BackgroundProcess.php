@@ -134,7 +134,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
      * @access public
      * @return void
      */
-    public function dispatch()
+    public function dispatch($start = false)
     {
         $logger = new \Zend\Log\Logger();
         $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/logforcurl.log');
@@ -143,6 +143,9 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
 
         $FormKey = $this->formKey->getFormKey();
         $requestData = ['form_key' => $FormKey];
+        if ($start) {
+            $this->setConfig($this->identifier.'_start_time', time());
+        }
         try {
             $this->curl->setTimeout(1);
             $url = $this->storeManager->getStore()->getBaseUrl()."dropshipping/manage/request/";
@@ -247,7 +250,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
         // UnLockProcess
         $this->unlockProcess();
 
-            // Start next batch or complete process.
+        // Start next batch or complete process.
         if (! $this->isQueueEmpty()) {
             $this->dispatch();
         }
@@ -447,6 +450,28 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
         if (! $this->isQueueEmpty()) {
             // Delete Database Batch
             $this->deleteConfig($this->identifier);
+
+            // For stop process at processing level
+            $stopInterval = 120;
+            $this->setConfig($this->identifier.'_stop_import', time() + $stopInterval);
         }
+    }
+
+    /**
+     * Get Latest Config Data(Bypassing Cache)
+     *
+     * @param string $path Config path.
+     * @return string Config value.
+     */
+    public function getConfigDirect($path)
+    {
+        $configConnection = $this->configModel->getConnection();
+        $selectData = $configConnection->select()->from($this->configModel->getMainTable())->where('path=?', $path);
+        $configData = $configConnection->fetchRow($selectData);
+        if (!empty($configData) && isset($configData['value'])) {
+            $configData = $configData['value'];
+            return $configData;
+        }
+        return false;
     }
 }

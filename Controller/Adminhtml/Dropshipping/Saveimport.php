@@ -37,7 +37,14 @@ class Saveimport extends \Magento\Backend\App\Action
      */
     public function execute()
     {
-        $this->commonHelper->runImport();
+        $operation = $this->getRequest()->getParam('operation');
+        if (!empty($operation) && $operation == 'stop_import') {
+            // Stop Import
+            $this->commonHelper->stopImport();
+        } else {
+            $this->commonHelper->runImport();
+        }
+
         // Redirect to import page.
         $this->_redirect('dropshipping/dropshipping/import/');
     }

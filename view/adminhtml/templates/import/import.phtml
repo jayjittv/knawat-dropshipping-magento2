@@ -15,6 +15,13 @@
                     <span><?php echo __('Start Import') ?></span>
                 </button>
 
+                <?php if($block->getImportStatus()): ?>
+                    <input name="operation" type="hidden" value="stop_import" />
+                    <button type="submit" class="action submit input-text" title="<?php echo __('Stop Import') ?>" onclick="return confirm('<?php echo __('Are you sure? do you really want to stop import?') ?>');">
+                        <span><?php echo __('Stop Import') ?></span>
+                    </button>
+                <?php endif; ?>
+
                 <?php
                 if($block->getImportStatus()){
                     $importData = $block->getImportStatus();
