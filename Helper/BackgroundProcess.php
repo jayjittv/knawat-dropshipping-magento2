@@ -85,6 +85,16 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get Identifier Key.
+     *
+     * @return string
+     */
+    public function getIdentifier()
+    {
+        return $this->identifier;
+    }
+
+    /**
      * Get config data from DB
      *
      * @param string $path

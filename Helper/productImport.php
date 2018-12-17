@@ -40,6 +40,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     protected $_attributeFactory;
 
     /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
      * Parameters which contains information regarding import.
      *
      * @var array
@@ -103,14 +108,21 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Data constructor.
      * @param \Magento\Framework\App\Helper\Context $context
+     * @param \Magento\Catalog\Model\Product $productModel
+     * @param \Magento\Backend\Model\Auth\Session $authSession
+     * @param \Magento\Framework\Pricing\Helper\Data $pricingHelper
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @param \Magento\Customer\Model\Session $customerSession
-     * @param \Magento\Framework\Registry $registry
-     * @param \Magento\Catalog\Model\CategoryFactory $catalogCategoryFactory
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute
-     * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory $attributeSetCollection,
-     * @param \Magento\Catalog\Model\Product\Url $productUrl,
+     * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory $attributeSetCollection
+     * @param \Magento\Catalog\Model\Product $product
+     * @param \Magento\Framework\App\Filesystem\DirectoryList $directoryList
+     * @param \Magento\Framework\Filesystem\Io\File $file
+     * @param \Magento\Catalog\Model\Product\Url $productUrl
+     * @param \Magento\Framework\ObjectManagerInterface $objectManager
+     * @param \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory
+     * @param \Magento\Framework\Filter\TranslitUrl $translitUrl
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Knawat\MPFactory $mpFactory
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -127,6 +139,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         ObjectManagerInterface $objectManager,
         \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory,
         \Magento\Framework\Filter\TranslitUrl $translitUrl,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Knawat\MPFactory $mpFactory
     ) {
         parent::__construct($context);
@@ -142,6 +155,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         $this->directoryList = $directoryList;
         $this->file = $file;
         $this->translitUrl = $translitUrl;
+        $this->storeManager = $storeManager;
         // Import parameters.
         $this->mpFactory = $mpFactory;
     }
@@ -227,6 +241,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
             // General Variables
             $attributeSetId = $this->getAttrSetId('Knawat');
+            $defaultCategoryId = $this->storeManager->getStore()->getRootCategoryId();
             $savedAttributes = [];
             foreach ($products as $index => $product) {
                 $logger = new \Zend\Log\Logger();
@@ -324,8 +339,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             $var_product->setStatus(\Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED); // Status on product enabled/ disabled 1/0
                             $var_product->setVisibility(\Magento\Catalog\Model\Product\Visibility::VISIBILITY_NOT_VISIBLE); // visibilty of product (catalog / search / catalog, search / Not visible individually)
                             $var_product->setWebsiteIds(array_keys($websites));
-                            $var_product->setCategoryIds([2]);
-                            $var_product->setTaxClassId(0); // Tax class id
+                            $var_product->setCategoryIds([$defaultCategoryId]);
                             $var_product->setWeight($variation['weight']); // weight of product
                             $var_product->setData('is_knawat', 1); // $product is product model's object
                             foreach ($attributeValues as $attributeKeyCode => $attributeValue) {
@@ -379,7 +393,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $main_product->setData('is_knawat', 1); // $product is product model's object
                         $main_product->setTypeId('configurable');
                         $main_product->setWebsiteIds(array_keys($websites));
-                        $main_product->setCategoryIds([2]);
+                        $main_product->setCategoryIds([$defaultCategoryId]);
                         $main_product->setStockData(
                             [
                                 'use_config_manage_stock' => 0, //'Use config settings' checkbox
