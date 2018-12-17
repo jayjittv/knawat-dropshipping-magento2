@@ -321,8 +321,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             $var_product->setName($variation['name']); // Name of Product
                             $var_product->setTypeId('simple'); // type of product (simple/virtual/downloadable/configurable)
                             $var_product->setPrice($variation['price']); // price of product
-                            $var_product->setStatus(1); // Status on product enabled/ disabled 1/0
-                            $var_product->setVisibility(1); // visibilty of product (catalog / search / catalog, search / Not visible individually)
+                            $var_product->setStatus(\Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED); // Status on product enabled/ disabled 1/0
+                            $var_product->setVisibility(\Magento\Catalog\Model\Product\Visibility::VISIBILITY_NOT_VISIBLE); // visibilty of product (catalog / search / catalog, search / Not visible individually)
                             $var_product->setWebsiteIds(array_keys($websites));
                             $var_product->setCategoryIds([2]);
                             $var_product->setTaxClassId(0); // Tax class id
@@ -375,7 +375,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $main_product->setUrlKey($this->translitUrl->filter($formated_data['name'].' '.$formated_data['sku']));
                         $main_product->setDescription($formated_data['description']); // Descripion of Product
                         $main_product->setAttributeSetId($attributeSetId); // Attribute set id
-                        $main_product->setStatus(1);
+                        $main_product->setStatus(\Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED);
                         $main_product->setData('is_knawat', 1); // $product is product model's object
                         $main_product->setTypeId('configurable');
                         $main_product->setWebsiteIds(array_keys($websites));
@@ -1145,7 +1145,14 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $image = fopen($newFileName, 'w');
                 fwrite($image, $raw_image_data);
                 fclose($image);
-                $product->addImageToMediaGallery($newFileName, $imageType, true, false);
+                // Check file exists or not.
+                if (file_exists($newFileName)) {
+                    // Check size of file.
+                    $size = @filesize($newFileName);
+                    if ($size > 0) {
+                        $product->addImageToMediaGallery($newFileName, $imageType, true, false);
+                    }
+                }
             } catch (\Exception $e) {
                 continue;
             }
