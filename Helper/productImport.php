@@ -88,11 +88,23 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     protected $translitUrl;
 
     /**
+     * @var \Knawat\Dropshipping\Helper\General
+     */
+    protected $generalHelper;
+
+    /**
      * Import Type
      *
      * @var string
      */
     protected $importType = 'full';
+
+    /**
+     * Logger for error logs
+     *
+     * @var string
+     */
+    protected $logger;
 
     /**
      * @var
@@ -140,6 +152,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory,
         \Magento\Framework\Filter\TranslitUrl $translitUrl,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Knawat\Dropshipping\Helper\General $generalHelper,
         \Knawat\MPFactory $mpFactory
     ) {
         parent::__construct($context);
@@ -156,8 +169,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         $this->file = $file;
         $this->translitUrl = $translitUrl;
         $this->storeManager = $storeManager;
+        $this->generalHelper = $generalHelper;
+
         // Import parameters.
         $this->mpFactory = $mpFactory;
+        $this->logger = $generalHelper->getLogger();
     }
 
     public function import($importType = 'full', $params = [])
@@ -179,7 +195,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         ];
         $this->params = array_merge($default_args, $params);
         $defaultLanguage = $this->getDefaultLanguage();
-        $mp = $this->createMP();
+        $mp = $this->generalHelper->createMP();
         $websites = $this->getWebsites(false);
         if (empty($websites)) {
             return [ 'status' => 'fail', 'message' => __('Websites are not enabled for import.') ];
@@ -194,7 +210,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
         switch ($this->importType) {
             case 'full':
-                $this->data = $mp->getProducts($this->params['limit'], $this->params['page']);
+                $lastUpdated = $this->generalHelper->getConfigDirect('knawat_last_imported', true);
+                if (empty($lastUpdated)) {
+                    $lastUpdated = 0;
+                }
+                $this->data = $mp->getProducts($this->params['limit'], $this->params['page'], $lastUpdated);
                 break;
 
             case 'single':
@@ -244,16 +264,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             $defaultCategoryId = $this->storeManager->getStore()->getRootCategoryId();
             $savedAttributes = [];
             foreach ($products as $index => $product) {
-                $logger = new \Zend\Log\Logger();
-                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/logforcurl.log');
-                $logger->addWriter($writer);
-
                 if ($index <= $this->params['product_index']) {
                     continue;
                 }
 
                 $formated_data = $this->getFormattedProducts($product);
-                // $logger->info("formated_data: " . print_r($formated_data, true));
                 if (empty($formated_data)) {
                     // Update product index
                     $this->params['product_index'] = $index;
@@ -472,18 +487,12 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $data['imported'][] = $productId;
                     }
                 } catch (\Exception $e) {
-                    // echo $e->getMessage();
-                    $logger = new \Zend\Log\Logger();
-                    $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/logforcurl.log');
-                    $logger->addWriter($writer);
-                    $logger->info("Fatal Error: " . $e->getMessage());
-                    
+                    $this->logger->info("[PRODUCT_IMPORT][ERROR] " . $e->getMessage());
                     if (isset($formated_data['id'])) {
                         $data['failed'][] = $formated_data['id'];
                     } elseif (isset($formated_data['sku'])) {
                         $data['failed'][] = $formated_data['sku'];
                     }
-                    // @todo logger here.
                 }
                 // Update product index
                 $this->params['product_index'] = $index;
@@ -685,8 +694,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             }
             $new_product['variations'] = $variations;
         } catch (\Exception $e) {
-            echo $e->getMessage();
-            // @todo logger here
+            $this->logger->info("[FORMAT_PRODUCT][ERROR] " . $e->getMessage());
         }
         return $new_product;
     }
@@ -941,7 +949,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 }
             }
         } catch (\Exception $e) {
-            // @todo logger here
+            $this->logger->info("[CREATE_UPDATE_ATTRIBUTE][ERROR] " . $e->getMessage());
         }
         return $formattedAttributes;
     }
@@ -1086,25 +1094,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             }
         }
         return $defaultConfigLanguage;
-    }
-
-    /**
-     * @return MP
-     */
-    protected function createMP()
-    {
-        $consumer_key = $this->getConfigData('consumer_key');
-        $consumer_secret = $this->getConfigData('consumer_secret');
-        if ($this->mpApi == null) {
-            $mp = $this->mpFactory->create([
-                'consumer_key' => $consumer_key,
-                'consumer_secret' => $consumer_secret,
-            ]);
-
-            return $this->mpApi = $mp;
-        } else {
-            return $this->mpApi;
-        }
     }
 
     /**
