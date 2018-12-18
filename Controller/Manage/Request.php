@@ -19,15 +19,22 @@ class Request extends Action
     protected $backgroundImport;
 
     /**
+     * @var \Knawat\Dropshipping\Helper\General
+     */
+    protected $generalHelper;
+
+    /**
      * @param \Magento\Framework\App\Action\Context $context
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
-        \Knawat\Dropshipping\Helper\BackgroundImport $backgroundImport
+        \Knawat\Dropshipping\Helper\BackgroundImport $backgroundImport,
+        \Knawat\Dropshipping\Helper\General $generalHelper
     ) {
         $this->resultPageFactory = $resultPageFactory;
         $this->backgroundImport = $backgroundImport;
+        $this->generalHelper = $generalHelper;
         parent::__construct($context);
     }
 
@@ -37,6 +44,10 @@ class Request extends Action
      */
     public function execute()
     {
-        $this->backgroundImport->maybeHandle();
+        $knawatParams = $this->getRequest()->getParam("knawat_key");
+        $knawatKey = $this->generalHelper->getConfigDirect('knawt_security',true);
+        if (md5($knawatKey) === $knawatParams) {
+            $this->backgroundImport->maybeHandle();
+        }
     }
 }

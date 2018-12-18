@@ -41,18 +41,30 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
      */
     protected $configInterface;
 
+    /**
+     * @var \Magento\Framework\HTTP\Client\Curl
+     */
     protected $curl;
 
-    protected $formKey;
-
+    /**
+     * @var \Magento\Framework\App\CacheInterface
+     */
     protected $cache;
 
+    /**
+     * @var
+     */
     protected $start_time;
 
     /**
      * @var \Magento\Config\Model\ResourceModel\Config
      */
     protected $configModel;
+
+    /**
+     * @var General
+     */
+    protected $generalHelper;
 
     /**
      * ManageConfig constructor.
@@ -68,18 +80,18 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\App\Config\ConfigResource\ConfigInterface $configInterface,
         \Magento\Framework\HTTP\Client\Curl $curl,
-        \Magento\Framework\Data\Form\FormKey $formKey,
         \Magento\Framework\App\CacheInterface $cache,
-        \Magento\Config\Model\ResourceModel\Config $configModel
+        \Magento\Config\Model\ResourceModel\Config $configModel,
+        \Knawat\Dropshipping\Helper\General $generalHelper
     ) {
         parent::__construct($context);
         $this->scopeConfig = $scopeConfig;
         $this->storeManager = $storeManager;
         $this->configInterface = $configInterface;
         $this->curl = $curl;
-        $this->formKey = $formKey;
         $this->cache = $cache;
         $this->configModel = $configModel;
+        $this->generalHelper = $generalHelper;
 
         $this->identifier = self::PATH_KNAWAT_DEFAULT.$this->action;
     }
@@ -140,9 +152,13 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
         $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/logforcurl.log');
         $logger->addWriter($writer);
         $logger->info("Dispatched");
-
-        $FormKey = $this->formKey->getFormKey();
-        $requestData = ['form_key' => $FormKey];
+        $knawatKey = $this->generalHelper->getConfigDirect('knawt_security',true);
+        if(empty($knawatKey)){
+            $knawatKey = $this->generalHelper->generateRandomString();
+            $this->setConfig(self::PATH_KNAWAT_DEFAULT."knawt_security",$knawatKey);
+        }
+        $encryptedKey = md5($knawatKey);
+        $requestData = ['knawat_key' => $encryptedKey];
         if ($start) {
             $this->setConfig($this->identifier.'_start_time', time());
         }
