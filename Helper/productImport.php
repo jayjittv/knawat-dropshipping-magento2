@@ -93,6 +93,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     protected $generalHelper;
 
     /**
+     * @var \Magento\CatalogInventory\Api\StockRegistryInterface
+     */
+    protected $stockRegistry;
+
+    /**
      * Import Type
      *
      * @var string
@@ -134,6 +139,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
      * @param \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory
      * @param \Magento\Framework\Filter\TranslitUrl $translitUrl
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
      * @param \Knawat\MPFactory $mpFactory
      */
     public function __construct(
@@ -153,6 +159,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Framework\Filter\TranslitUrl $translitUrl,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Knawat\Dropshipping\Helper\General $generalHelper,
+        \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \Knawat\MPFactory $mpFactory
     ) {
         parent::__construct($context);
@@ -170,6 +177,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         $this->translitUrl = $translitUrl;
         $this->storeManager = $storeManager;
         $this->generalHelper = $generalHelper;
+        $this->stockRegistry = $stockRegistry;
 
         // Import parameters.
         $this->mpFactory = $mpFactory;
@@ -307,13 +315,13 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             // update Exising Product Variation
                             $var_product = $this->_objectManager->create('\Magento\Catalog\Model\Product')->load($variation['id']);
                             $var_product->setPrice($variation['price']); // price of product
-                            $var_product->setStockData(
-                                [
-                                    'is_in_stock'  => ($variation['stock_quantity'] > 0 ) ? 1 : 0,
-                                    'qty' => $variation['stock_quantity']
-                                ]
-                            );
-                            $var_product->save();
+                            $productResource->saveAttribute($var_product, 'price');
+                            // Update stock
+                            $stockItem = $this->stockRegistry->getStockItemBySku($var_product->getSku());
+                            $stockItem->setQty($variation['stock_quantity']);
+                            $stockItem->setIsInStock((bool)($variation['stock_quantity'] > 0 ) ? 1 : 0);
+                            $this->stockRegistry->updateStockItemBySku($var_product->getSku(), $stockItem);
+
                             $existingAssociatedProductIds[] = $var_product->getId();
                         } else {
                             if (empty($savedAttributes)) {
@@ -377,14 +385,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     }
 
                     if (isset($formated_data['id']) && !empty($formated_data['id']) && $formated_data['id'] > 0) {
-                        $main_product = $this->_objectManager->create('\Magento\Catalog\Model\Product')->load($formated_data['id']);
-                        $main_product->setStockData(
-                            [
-                                'manage_stock' => 1, //manage stock
-                                'is_in_stock' => ($totalQty > 0) ? 1 : 0, //Stock Availability
-                            ]
-                        );
-                        $main_product->save();
+                        // Update stock
+                        $stockItem = $this->stockRegistry->getStockItemBySku($formated_data['sku']);
+                        $stockItem->setIsInStock((bool)($totalQty > 0 ) ? 1 : 0);
+                        $this->stockRegistry->updateStockItemBySku($formated_data['sku'], $stockItem);
+
                         $data['updated'][] = $formated_data['id'];
                         if (!empty($associatedProductSkus)) {
                             $linkManagement  = $this->_objectManager->create(\Magento\ConfigurableProduct\Model\LinkManagement::class);
@@ -529,6 +534,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             $product_id = $this->getProductBySku($sku);
             if ($product_id) {
                 $new_product['id'] = $product_id;
+                $new_product['sku'] = $product->sku;
                 $new_product['name'] = '';
                 if (isset($product->name->$defaultLanguage)) {
                     $new_product['name'] = $product->name->$defaultLanguage;
