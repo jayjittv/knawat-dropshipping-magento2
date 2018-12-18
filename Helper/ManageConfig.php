@@ -91,18 +91,11 @@ class ManageConfig extends \Magento\Framework\App\Helper\AbstractHelper
             } else {
                 return $this->mpApi;
             }
-        } else {
-            return $this->addStoreKeyNotice();
+        }else{
+            return false;
         }
     }
 
-    /**
-     *
-     */
-    public function addStoreWarning()
-    {
-        $this->messageManager->addWarningMessage('Your store is not connected to knawat , Please Enter valid consumer key and secret key.');
-    }
 
     /**
      * @return bool
@@ -112,11 +105,15 @@ class ManageConfig extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->moduleManager->isEnabled('Knawat_Dropshipping');
     }
 
+
     /**
-     *
+     * @return bool
      */
-    protected function addStoreKeyNotice()
-    {
-        $this->messageManager->addWarningMessage('Please Enter Consumer Key and Consumer Secret Key to connect your store to Knawat.');
+    public function checkKeyNotAvailable(){
+        $consumer_key = $this->getConfigData('consumer_key');
+        $consumer_secret = $this->getConfigData('consumer_secret');
+        if (($consumer_key == '') || ($consumer_secret = '')) {
+            return true;
+        }
     }
 }
