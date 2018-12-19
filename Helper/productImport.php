@@ -11,7 +11,7 @@ use Magento\Framework\ObjectManagerInterface;
 class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 {
 
-    protected $_productModel;
+    protected $productModel;
     protected $authSession;
     protected $pricingHelper;
     /**
@@ -22,22 +22,17 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute
      */
-    protected $_eavAttribute;
+    protected $eavAttribute;
 
     /**
      * @var ObjectManagerInterface
      */
-    protected $_objectManager;
+    protected $objectManager;
 
     /**
      * @var \Magento\Catalog\Model\Product\Url
      */
-    protected $_productUrl;
-
-    /**
-     * @var \Magento\Eav\Setup\EavSetupFactory
-     */
-    protected $_attributeFactory;
+    protected $productUrl;
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
@@ -78,7 +73,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @var array
      */
-    protected $_attributeSetCollection;
+    protected $attributeSetCollection;
 
     /**
      * Translit Name to URL key.
@@ -96,6 +91,16 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
      * @var \Magento\CatalogInventory\Api\StockRegistryInterface
      */
     protected $stockRegistry;
+
+    /**
+     * @var \Magento\Catalog\Api\Data\ProductInterfaceFactory
+     */
+    protected $productFactory;
+
+    /**
+     * @var \Magento\Catalog\Api\ProductRepositoryInterface
+     */
+    protected $productRepository;
 
     /**
      * Import Type
@@ -136,10 +141,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
      * @param \Magento\Framework\Filesystem\Io\File $file
      * @param \Magento\Catalog\Model\Product\Url $productUrl
      * @param \Magento\Framework\ObjectManagerInterface $objectManager
-     * @param \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory
      * @param \Magento\Framework\Filter\TranslitUrl $translitUrl
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
+     * @param \Magento\Catalog\Api\Data\ProductInterfaceFactory $productFactory
+     * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
      * @param \Knawat\MPFactory $mpFactory
      */
     public function __construct(
@@ -155,29 +161,31 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Framework\Filesystem\Io\File $file,
         \Magento\Catalog\Model\Product\Url $productUrl,
         ObjectManagerInterface $objectManager,
-        \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory,
         \Magento\Framework\Filter\TranslitUrl $translitUrl,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Knawat\Dropshipping\Helper\General $generalHelper,
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
+        \Magento\Catalog\Api\Data\ProductInterfaceFactory $productFactory,
+        \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \Knawat\MPFactory $mpFactory
     ) {
         parent::__construct($context);
-        $this->_productModel = $productModel;
+        $this->productModel = $productModel;
         $this->authSession = $authSession;
         $this->pricingHelper = $pricingHelper;
         $this->scopeConfig = $scopeConfig;
-        $this->_attributeSetCollection = $attributeSetCollection;
-        $this->_eavAttribute = $eavAttribute;
-        $this->_objectManager = $objectManager;
-        $this->_productUrl = $productUrl;
-        $this->_eavSetupFactory = $eavSetupFactory;
+        $this->attributeSetCollection = $attributeSetCollection;
+        $this->eavAttribute = $eavAttribute;
+        $this->objectManager = $objectManager;
+        $this->productUrl = $productUrl;
         $this->directoryList = $directoryList;
         $this->file = $file;
         $this->translitUrl = $translitUrl;
         $this->storeManager = $storeManager;
         $this->generalHelper = $generalHelper;
         $this->stockRegistry = $stockRegistry;
+        $this->productFactory = $productFactory;
+        $this->productRepository = $productRepository;
 
         // Import parameters.
         $this->mpFactory = $mpFactory;
@@ -308,12 +316,12 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $associatedProductIds = [];
                 $existingAssociatedProductIds = [];
                 $associatedProductSkus = [];
-                $productResource = $this->_objectManager->create('\Magento\Catalog\Model\ResourceModel\Product');
+                $productResource = $this->objectManager->create('\Magento\Catalog\Model\ResourceModel\Product');
                 try {
                     foreach ($variations as $variation) {
                         if (isset($variation['id']) && !empty($variation['id']) && $variation['id'] > 0) {
                             // update Exising Product Variation
-                            $var_product = $this->_objectManager->create('\Magento\Catalog\Model\Product')->load($variation['id']);
+                            $var_product = $this->objectManager->create('\Magento\Catalog\Model\Product')->load($variation['id']);
                             $var_product->setPrice($variation['price']); // price of product
                             $productResource->saveAttribute($var_product, 'price');
                             // Update stock
@@ -327,7 +335,10 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             if (empty($savedAttributes)) {
                                 if (isset($formated_data['raw_attributes'])) {
                                     // Create and Setup Attributes.
-                                    $savedAttributes = $this->createUpdateAttributes($formated_data['raw_attributes'], $attributeSetId);
+                                    $savedAttributes = $this->createUpdateAttributes(
+                                        $formated_data['raw_attributes'],
+                                        $attributeSetId
+                                    );
                                 }
                             }
                             // Variation not exists create it.
@@ -354,21 +365,25 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 }
                             }
 
-                            $var_product = $this->_objectManager->create('\Magento\Catalog\Model\Product');
-                            $var_product->setSku($variation['sku']); // Set your sku here
-                            $var_product->setName($variation['name']); // Name of Product
-                            $var_product->setTypeId('simple'); // type of product (simple/virtual/downloadable/configurable)
-                            $var_product->setPrice($variation['price']); // price of product
-                            $var_product->setStatus(\Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED); // Status on product enabled/ disabled 1/0
-                            $var_product->setVisibility(\Magento\Catalog\Model\Product\Visibility::VISIBILITY_NOT_VISIBLE); // visibilty of product (catalog / search / catalog, search / Not visible individually)
+                            $var_product = $this->productFactory->create();
+                            $var_product->setSku($variation['sku']);
+                            $var_product->setName($variation['name']);
+                            $var_product->setTypeId('simple');
+                            $var_product->setPrice($variation['price']);
+                            $var_product->setStatus(
+                                \Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED
+                            );
+                            $var_product->setVisibility(
+                                \Magento\Catalog\Model\Product\Visibility::VISIBILITY_NOT_VISIBLE
+                            );
                             $var_product->setWebsiteIds(array_keys($websites));
                             $var_product->setCategoryIds([$defaultCategoryId]);
-                            $var_product->setWeight($variation['weight']); // weight of product
-                            $var_product->setData('is_knawat', 1); // $product is product model's object
+                            $var_product->setWeight($variation['weight']);
+                            $var_product->setData('is_knawat', 1);
                             foreach ($attributeValues as $attributeKeyCode => $attributeValue) {
-                                $var_product->setData($attributeKeyCode, $attributeValue); //
+                                $var_product->setData($attributeKeyCode, $attributeValue);
                             }
-                            $var_product->setAttributeSetId($attributeSetId); // Attribute set id
+                            $var_product->setAttributeSetId($attributeSetId);
                             $var_product->setStockData(
                                 [
                                     'use_config_manage_stock' => 0,
@@ -392,7 +407,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
                         $data['updated'][] = $formated_data['id'];
                         if (!empty($associatedProductSkus)) {
-                            $linkManagement  = $this->_objectManager->create(\Magento\ConfigurableProduct\Model\LinkManagement::class);
+                            $linkManagement  = $this->objectManager->create(\Magento\ConfigurableProduct\Model\LinkManagement::class);
                             foreach ($associatedProductSkus as $associatedProductSku) {
                                 try {
                                     $linkManagement->addChild($main_product->getSku(), $associatedProductSku);
@@ -403,22 +418,26 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         }
                     } else {
                         // Main Product.
-                        $main_product = $this->_objectManager->create('\Magento\Catalog\Model\Product');
-                        $main_product->setSku($formated_data['sku']); // Set your sku here
-                        $main_product->setName($formated_data['name']); // Name of Product
-                        $main_product->setUrlKey($this->translitUrl->filter($formated_data['name'].' '.$formated_data['sku']));
-                        $main_product->setDescription($formated_data['description']); // Descripion of Product
-                        $main_product->setAttributeSetId($attributeSetId); // Attribute set id
-                        $main_product->setStatus(\Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED);
-                        $main_product->setData('is_knawat', 1); // $product is product model's object
+                        $main_product = $this->productFactory->create();
+                        $main_product->setSku($formated_data['sku']);
+                        $main_product->setName($formated_data['name']);
+                        $main_product->setUrlKey(
+                            $this->translitUrl->filter($formated_data['name'].' '.$formated_data['sku'])
+                        );
+                        $main_product->setDescription($formated_data['description']);
+                        $main_product->setAttributeSetId($attributeSetId);
+                        $main_product->setStatus(
+                            \Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED
+                        );
+                        $main_product->setData('is_knawat', 1);
                         $main_product->setTypeId('configurable');
                         $main_product->setWebsiteIds(array_keys($websites));
                         $main_product->setCategoryIds([$defaultCategoryId]);
                         $main_product->setStockData(
                             [
-                                'use_config_manage_stock' => 0, //'Use config settings' checkbox
-                                'manage_stock' => 1, //manage stock
-                                'is_in_stock' => ($totalQty > 0) ? 1 : 0, //Stock Availability
+                                'use_config_manage_stock' => 0,
+                                'manage_stock' => 1,
+                                'is_in_stock' => ($totalQty > 0) ? 1 : 0
                             ]
                         );
 
@@ -428,18 +447,27 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 $configurableAttributesIds[] = $savedAttribute['attr_id'];
                             }
                         }
-                        $configurableAttributesIds = array_unique($configurableAttributesIds); // Super Attribute Ids Used To Create Configurable Product
+                        // Super Attribute Ids Used To Create Configurable Product.
+                        $configurableAttributesIds = array_unique($configurableAttributesIds);
 
                         $main_product->setAffectConfigurableProductAttributes($attributeSetId);
-                        $main_product->getTypeInstance()->setUsedProductAttributeIds($configurableAttributesIds, $main_product);
-                        $this->_objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable')->setUsedProductAttributeIds($configurableAttributesIds, $main_product);
+                        $main_product->getTypeInstance()->setUsedProductAttributeIds(
+                            $configurableAttributesIds,
+                            $main_product
+                        );
+                        $this->objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable')->setUsedProductAttributeIds($configurableAttributesIds, $main_product);
                         $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
                         $main_product->setAssociatedProductIds($associatedProductIds);// Setting Associated Products
+
+                        // Set Existing Associated Products.
                         if (!empty($existingAssociatedProductIds)) {
-                            $existingAssociatedProductIds = array_merge($existingAssociatedProductIds, $associatedProductIds);
-                            // Set Existing Associated Products.
+                            $existingAssociatedProductIds = array_merge(
+                                $existingAssociatedProductIds,
+                                $associatedProductIds
+                            );
                             $main_product->setAssociatedProductIds($existingAssociatedProductIds);
                         }
+
                         $main_product->setCanSaveConfigurableAttributes(true);
                         if (isset($savedAttributes['info_attribute']) && !empty($savedAttributes['info_attribute'])) {
                             foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
@@ -453,7 +481,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             $this->importImages($main_product, $formated_data['images']);
                         }
                         $main_product->save();
-                        $productId = $main_product->getId(); // Configurable Product Id
+                        $productId = $main_product->getId();
 
                         foreach ($websites as $webKey => $website) {
                             foreach ($website as $storeKey => $store) {
@@ -483,7 +511,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         }
 
                         $position = 0;
-                        $attributeModel = $this->_objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute');
+                        $attributeModel = $this->objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute');
                         foreach ($configurableAttributesIds as $attributeId) {
                             $attribData = ['attribute_id' => $attributeId, 'product_id' => $productId, 'position' => $position];
                             $position++;
@@ -709,11 +737,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
      * Get ProductModel by SKU
      *
      * @param string $sku
-     * @return object $this->_productModel
+     * @return object $this->productModel
      */
     public function getProductBySku($sku)
     {
-        return $product = $this->_productModel->getIdBySku($sku);
+        return $product = $this->productModel->getIdBySku($sku);
     }
 
     /**
@@ -729,7 +757,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
     public function getAttrSetId($attrSetName)
     {
-        $attributeSet = $this->_attributeSetCollection->create()->addFieldToSelect('*')->addFieldToFilter(
+        $attributeSet = $this->attributeSetCollection->create()->addFieldToSelect('*')->addFieldToFilter(
             'attribute_set_name',
             $attrSetName
         );
@@ -742,7 +770,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
     public function getAttributeId($attributeCode)
     {
-        return $this->_eavAttribute->getIdByCode(\Magento\Catalog\Model\Product::ENTITY, $attributeCode);
+        return $this->eavAttribute->getIdByCode(\Magento\Catalog\Model\Product::ENTITY, $attributeCode);
     }
 
     /**
@@ -771,8 +799,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $formattedAttributes[$attribute['name']] = [];
                 $websites = $this->getWebsites();
                 if (empty($attributeId)) {
-                    $new_attribute = $this->_objectManager->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class);
-                    $categorySetup = $this->_objectManager->create(\Magento\Catalog\Setup\CategorySetup::class);
+                    $new_attribute = $this->objectManager->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class);
+                    $categorySetup = $this->objectManager->create(\Magento\Catalog\Setup\CategorySetup::class);
                     $entityTypeId = $categorySetup->getEntityTypeId('catalog_product');
                     $storeLabels = [];
                     foreach ($websites as $webKey => $website) {
@@ -835,7 +863,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
                         $attributeId = $new_attribute->getId();
                         $attributeCode = $new_attribute->getAttributeCode();
-                        $productAttributeRepository = $this->_objectManager->create(\Magento\Catalog\Model\Product\Attribute\Repository::class);
+                        $productAttributeRepository = $this->objectManager->create(\Magento\Catalog\Model\Product\Attribute\Repository::class);
                         $options = $productAttributeRepository->get($attributeCode)->getOptions();
                         foreach ($options as $option) {
                             if (!empty(trim($option->getLabel()))) {
@@ -886,9 +914,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 } else {
                     if (isset($attribute['taxonomy']) && $attribute['taxonomy'] == '1') {
                         $existingOptions = [];
-                        $existingAttribute = $this->_objectManager->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class)->load($attributeId);
+                        $existingAttribute = $this->objectManager->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class)->load($attributeId);
                         $attributeCode = $existingAttribute->getAttributeCode();
-                        $productAttributeRepository = $this->_objectManager->create(\Magento\Catalog\Model\Product\Attribute\Repository::class);
+                        $productAttributeRepository = $this->objectManager->create(\Magento\Catalog\Model\Product\Attribute\Repository::class);
                         $options = $productAttributeRepository->get($attributeCode)->getOptions();
                         foreach ($options as $option) {
                             if (!empty(trim($option->getLabel()))) {
@@ -911,13 +939,13 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                         $storeOption = [ $valueKey ];
                                     }
 
-                                    $_option = $this->_objectManager->create(\Magento\Eav\Model\Entity\Attribute\Option::class);
-                                    $_attributeOptionManagement = $this->_objectManager->create(\Magento\Eav\Api\AttributeOptionManagementInterface::class);
-                                    $_attributeOptionLabel = $this->_objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
+                                    $_option = $this->objectManager->create(\Magento\Eav\Model\Entity\Attribute\Option::class);
+                                    $_attributeOptionManagement = $this->objectManager->create(\Magento\Eav\Api\AttributeOptionManagementInterface::class);
+                                    $_attributeOptionLabel = $this->objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
 
                                     $storeLabels = '';
                                     foreach ($storeOption as $sKey => $sOption) {
-                                        $_attributeOptionLabel2 = $this->_objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
+                                        $_attributeOptionLabel2 = $this->objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
                                         $_attributeOptionLabel2->setStoreId($sKey);
                                         $_attributeOptionLabel2->setLabel($sOption);
                                         $storeLabels[$sKey] = $_attributeOptionLabel2;
@@ -975,7 +1003,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             preg_replace(
                 '/[^a-z_0-9]/',
                 '_',
-                $this->_productUrl->formatUrlKey($label)
+                $this->productUrl->formatUrlKey($label)
             ),
             0,
             25
@@ -999,7 +1027,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             preg_replace(
                 '/[^a-z_0-9]/',
                 '_',
-                $this->_productUrl->formatUrlKey($value)
+                $this->productUrl->formatUrlKey($value)
             ),
             0,
             30
@@ -1019,7 +1047,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
      */
     protected function getWebsites($withAdmin = true)
     {
-        $_storeRepository = $this->_objectManager->create('Magento\Store\Model\StoreRepository');
+        $_storeRepository = $this->objectManager->create('Magento\Store\Model\StoreRepository');
         $stores = $_storeRepository->getList();
         $websites = [];
         $enabaledWebsites = [];
@@ -1084,7 +1112,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         $defaultConfigLanguage = $this->getConfigData('store_language');
         if (empty($defaultConfigLanguage)) {
             $defaultConfigLanguage = 'en';
-            $_storeRepository = $this->_objectManager->create('Magento\Store\Model\StoreRepository');
+            $_storeRepository = $this->objectManager->create('Magento\Store\Model\StoreRepository');
             $stores = $_storeRepository->getList();
             foreach ($stores as $store) {
                 if ($store["code"] == 'admin') {
