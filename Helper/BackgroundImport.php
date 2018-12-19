@@ -19,6 +19,11 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
     protected $importer;
 
     /**
+     * @var \Knawat\Dropshipping\Helper\General
+     */
+    protected $generalHelper;
+
+    /**
      * @var \Magento\Framework\App\CacheInterface
      */
     protected $cache;
@@ -50,6 +55,7 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
             $generalHelper
         );
         $this->importer = $importer;
+        $this->generalHelper = $generalHelper;
         $this->cache = $cache;
     }
 
@@ -64,10 +70,7 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
      */
     protected function task($item = [])
     {
-
-        $logger = new \Zend\Log\Logger();
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/logforcurl.log');
-        $logger->addWriter($writer);
+        $logger = $this->generalHelper->getLogger();
         $logger->info("Item: " . print_r($item, true));
 
         $results = $this->importer->import('full', $item);
@@ -80,7 +83,7 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
 
         $identifier = $this->getIdentifier();
         $stopImportPath = $identifier.'_stop_import';
-        $stopImport = $this->getConfigDirect($stopImportPath);
+        $stopImport = $this->generalHelper->getConfigDirect($stopImportPath);
         if ($stopImport) {
             if ($stopImport > time()) {
                 $params['is_complete'] = true;
@@ -99,7 +102,7 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
 
             if (!isset($params['force_stopped'])) {
                 // update option on import finish.
-                $startTime = $this->getConfigDirect($identifier.'_start_time');
+                $startTime = $this->generalHelper->getConfigDirect($identifier.'_start_time');
                 if (empty($startTime)) {
                     $startTime = time();
                 }

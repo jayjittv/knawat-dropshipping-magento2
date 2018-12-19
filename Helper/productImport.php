@@ -531,7 +531,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->params['product_index'] = $index;
 
                 // Prevent Timeout and Memory exceed.
-                if ($this->params['prevent_timeouts'] && ($this->timeExceeded() || $this->memoryExceeded())) {
+                if ($this->params['prevent_timeouts'] && ($this->generalHelper->timeExceeded($this->start_time) || $this->generalHelper->memoryExceeded())) {
                     break;
                 }
             }
@@ -1194,77 +1194,5 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 continue;
             }
         }
-    }
-
-    /**
-     * Time exceeded.
-     *
-     * Ensures the batch never exceeds a sensible time limit.
-     * A timeout limit of 30s is common on shared hosting.
-     *
-     * @return bool
-     */
-    protected function timeExceeded()
-    {
-        $max_time = 20; // 20 seconds.
-        if (function_exists('ini_get')) {
-            $max_execution_time = ini_get('max_execution_time');
-            if (is_numeric($max_execution_time) && $max_execution_time > 0) {
-                if ($max_execution_time >= 30) {
-                    $max_execution_time -= 10;
-                }
-                $max_time = $max_execution_time;
-            }
-        }
-        $time_limit = min(50, $max_time);
-
-        $finish = $this->start_time + $time_limit;
-        if (time() >= $finish) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Memory exceeded
-     *
-     * Ensures the batch process never exceeds 90%
-     * of the maximum WordPress memory.
-     *
-     * @return bool
-     */
-    protected function memoryExceeded()
-    {
-        $memory_limit   = $this->getMemoryLimit() * 0.9; // 90% of max memory
-        $current_memory = memory_get_usage(true);
-
-        if ($current_memory >= $memory_limit) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Get memory limit
-     *
-     * @return int
-     */
-    public function getMemoryLimit()
-    {
-        if (function_exists('ini_get')) {
-            $memory_limit = ini_get('memory_limit');
-        } else {
-            // Sensible default.
-            $memory_limit = '128M';
-        }
-
-        if (! $memory_limit || -1 === intval($memory_limit)) {
-            // Unlimited, set to 32GB.
-            $memory_limit = '32000M';
-        }
-
-        return intval($memory_limit) * 1024 * 1024;
     }
 }

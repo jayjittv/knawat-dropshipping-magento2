@@ -148,14 +148,10 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function dispatch($start = false)
     {
-        $logger = new \Zend\Log\Logger();
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/logforcurl.log');
-        $logger->addWriter($writer);
-        $logger->info("Dispatched");
-        $knawatKey = $this->generalHelper->getConfigDirect('knawt_security',true);
-        if(empty($knawatKey)){
+        $knawatKey = $this->generalHelper->getConfigDirect('knawt_security', true);
+        if (empty($knawatKey)) {
             $knawatKey = $this->generalHelper->generateRandomString();
-            $this->setConfig(self::PATH_KNAWAT_DEFAULT."knawt_security",$knawatKey);
+            $this->setConfig(self::PATH_KNAWAT_DEFAULT."knawt_security", $knawatKey);
         }
         $encryptedKey = md5($knawatKey);
         $requestData = ['knawat_key' => $encryptedKey];
@@ -261,7 +257,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
             } else {
                 $this->deleteConfig($this->identifier);
             }
-        } while (! $this->timeExceeded() && ! $this->memoryExceeded() && ! $this->isQueueEmpty());
+        } while (! $this->generalHelper->timeExceeded($this->start_time) && ! $this->generalHelper->memoryExceeded() && ! $this->isQueueEmpty());
 
         // UnLockProcess
         $this->unlockProcess();
@@ -385,78 +381,6 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Time exceeded.
-     *
-     * Ensures the batch never exceeds a sensible time limit.
-     * A timeout limit of 30s is common on shared hosting.
-     *
-     * @return bool
-     */
-    protected function timeExceeded()
-    {
-        $max_time = 20; // 20 seconds.
-        if (function_exists('ini_get')) {
-            $max_execution_time = ini_get('max_execution_time');
-            if (is_numeric($max_execution_time) && $max_execution_time > 0) {
-                if ($max_execution_time >= 30) {
-                    $max_execution_time -= 10;
-                }
-                $max_time = $max_execution_time;
-            }
-        }
-        $time_limit = min(50, $max_time);
-
-        $finish = $this->start_time + $time_limit;
-        if (time() >= $finish) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Memory exceeded
-     *
-     * Ensures the batch process never exceeds 90%
-     * of the maximum WordPress memory.
-     *
-     * @return bool
-     */
-    protected function memoryExceeded()
-    {
-        $memory_limit   = $this->getMemoryLimit() * 0.9; // 90% of max memory
-        $current_memory = memory_get_usage(true);
-
-        if ($current_memory >= $memory_limit) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Get memory limit
-     *
-     * @return int
-     */
-    public function getMemoryLimit()
-    {
-        if (function_exists('ini_get')) {
-            $memory_limit = ini_get('memory_limit');
-        } else {
-            // Sensible default.
-            $memory_limit = '128M';
-        }
-
-        if (! $memory_limit || -1 === intval($memory_limit)) {
-            // Unlimited, set to 32GB.
-            $memory_limit = '32000M';
-        }
-
-        return intval($memory_limit) * 1024 * 1024;
-    }
-
-    /**
      * Kill process.
      *
      * Stop processing queue items, clear cronjob and delete all batches.
@@ -471,23 +395,5 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
             $stopInterval = 120;
             $this->setConfig($this->identifier.'_stop_import', time() + $stopInterval);
         }
-    }
-
-    /**
-     * Get Latest Config Data(Bypassing Cache)
-     *
-     * @param string $path Config path.
-     * @return string Config value.
-     */
-    public function getConfigDirect($path)
-    {
-        $configConnection = $this->configModel->getConnection();
-        $selectData = $configConnection->select()->from($this->configModel->getMainTable())->where('path=?', $path);
-        $configData = $configConnection->fetchRow($selectData);
-        if (!empty($configData) && isset($configData['value'])) {
-            $configData = $configData['value'];
-            return $configData;
-        }
-        return false;
     }
 }

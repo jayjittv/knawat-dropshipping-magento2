@@ -45,7 +45,7 @@ class Request extends Action
     public function execute()
     {
         $knawatParams = $this->getRequest()->getParam("knawat_key");
-        $knawatKey = $this->generalHelper->getConfigDirect('knawt_security',true);
+        $knawatKey = $this->generalHelper->getConfigDirect('knawt_security', true);
         if (md5($knawatKey) === $knawatParams) {
             $this->backgroundImport->maybeHandle();
         }
