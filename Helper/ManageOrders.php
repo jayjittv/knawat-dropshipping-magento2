@@ -68,6 +68,16 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
      * used to retrive knawat configuration data
      */
     const PATH_KNAWAT_DEFAULT = 'knawat/store/';
+
+    /**
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     */
+    protected $orderRepository;
+
+    /**
+     * @var \Magento\Framework\Api\SearchCriteriaBuilder
+     */
+    protected $searchCriteriaBuilder;
     /**
      * Data constructor.
      * @param \Magento\Framework\App\Helper\Context $context
@@ -85,6 +95,8 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Knawat\MPFactory $mpFactory,
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
+        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         array $params = []
     ) {
         $default_args = [
@@ -99,6 +111,8 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
         $this->mpFactory = $mpFactory;
         $this->params = $default_args;
         $this->saveTransaction = $transactionFactory->create();
+        $this->orderRepository = $orderRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     /**
@@ -266,81 +280,87 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
     {
 
         if (isset($orderId)) {
-            $order= $this->getOrderObject($orderId);
-            $newOrder = [];
-            $newOrder['id'] = $order->getId();
-            if ($order->getStatus() == 'canceled') {
-                $orderStatus = 'cancelled';
-                $newOrder['status'] = $orderStatus;
-            } else {
-                $newOrder['status'] = $order->getStatus();
-            }
-            $newOrder['items'] = [];
-            foreach ($order->getAllItems() as $item) {
-                $isKnawat = $this->isProductKnawat($item);
-                if ($isKnawat == 1) {
-                    $items['quantity'] = $item->getQtyOrdered();
-                    $items['sku'] = $item->getSku();
+            try {
+                $order= $this->getOrderObject($orderId);
+                $newOrder = [];
+                $newOrder['id'] = $order->getId();
+                if ($order->getStatus() == 'canceled') {
+                    $orderStatus = 'cancelled';
+                    $newOrder['status'] = $orderStatus;
+                } else {
+                    $newOrder['status'] = $order->getStatus();
                 }
-            }
-            $newOrder['items'][] = (object)$items;
-            /*get billing address*/
-            $newOrder['billing']['first_name'] = $order->getBillingAddress()->getFirstname();
-            $newOrder['billing']['last_name'] = $order->getBillingAddress()->getLastname();
-            $newOrder['billing']['company'] = $order->getBillingAddress()->getCompany();
+                $newOrder['items'] = [];
+                foreach ($order->getAllItems() as $item) {
+                    $isKnawat = $this->isProductKnawat($item);
+                    if ($isKnawat == 1) {
+                        $items['quantity'] = $item->getQtyOrdered();
+                        $items['sku'] = $item->getSku();
+                    }
+                }
+                if(isset($items)){
+                    $newOrder['items'][] = (object)$items;
+                }
+                /*get billing address*/
+                $newOrder['billing']['first_name'] = $order->getBillingAddress()->getFirstname();
+                $newOrder['billing']['last_name'] = $order->getBillingAddress()->getLastname();
+                $newOrder['billing']['company'] = $order->getBillingAddress()->getCompany();
 
-            $billingAddress = $order->getBillingAddress()->getStreet();
-            if (array_key_exists(0, $billingAddress)) {
-                $newOrder['billing']['address_1'] = $billingAddress[0];
-            } else {
-                $newOrder['billing']['address_1'] = '';
-            }
-            if (array_key_exists(1, $billingAddress)) {
-                $newOrder['billing']['address_2'] = $billingAddress[1];
-            } else {
-                $newOrder['billing']['address_2'] = '';
-            }
-            $newOrder['billing']['city'] = $order->getBillingAddress()->getCity();
-            $newOrder['billing']['state'] = $order->getBillingAddress()->getRegion();
-            $newOrder['billing']['postcode'] = $order->getBillingAddress()->getPostcode();
-            $newOrder['billing']['country'] = $order->getBillingAddress()->getCountryId();
-            $newOrder['billing']['email'] = $order->getBillingAddress()->getEmail();
-            $newOrder['billing']['phone'] = $order->getBillingAddress()->getTelephone();
-            /*get shipping address*/
-            $newOrder['shipping']['first_name'] = $order->getBillingAddress()->getFirstname();
-            $newOrder['shipping']['last_name'] = $order->getShippingAddress()->getLastname();
-            $newOrder['shipping']['company'] = $order->getShippingAddress()->getCompany();
-            $address = $order->getShippingAddress()->getStreet();
-            if (array_key_exists(0, $address)) {
-                $newOrder['shipping']['address_1'] = $address[0];
-            } else {
-                $newOrder['shipping']['address_1'] = '';
-            }
-            if (array_key_exists(1, $address)) {
-                $newOrder['shipping']['address_2'] = $address[1];
-            } else {
-                $newOrder['shipping']['address_2'] = '';
-            }
+                $billingAddress = $order->getBillingAddress()->getStreet();
+                if (array_key_exists(0, $billingAddress)) {
+                    $newOrder['billing']['address_1'] = $billingAddress[0];
+                } else {
+                    $newOrder['billing']['address_1'] = '';
+                }
+                if (array_key_exists(1, $billingAddress)) {
+                    $newOrder['billing']['address_2'] = $billingAddress[1];
+                } else {
+                    $newOrder['billing']['address_2'] = '';
+                }
+                $newOrder['billing']['city'] = $order->getBillingAddress()->getCity();
+                $newOrder['billing']['state'] = $order->getBillingAddress()->getRegion();
+                $newOrder['billing']['postcode'] = $order->getBillingAddress()->getPostcode();
+                $newOrder['billing']['country'] = $order->getBillingAddress()->getCountryId();
+                $newOrder['billing']['email'] = $order->getBillingAddress()->getEmail();
+                $newOrder['billing']['phone'] = $order->getBillingAddress()->getTelephone();
+                /*get shipping address*/
+                $newOrder['shipping']['first_name'] = $order->getBillingAddress()->getFirstname();
+                $newOrder['shipping']['last_name'] = $order->getShippingAddress()->getLastname();
+                $newOrder['shipping']['company'] = $order->getShippingAddress()->getCompany();
+                $address = $order->getShippingAddress()->getStreet();
+                if (array_key_exists(0, $address)) {
+                    $newOrder['shipping']['address_1'] = $address[0];
+                } else {
+                    $newOrder['shipping']['address_1'] = '';
+                }
+                if (array_key_exists(1, $address)) {
+                    $newOrder['shipping']['address_2'] = $address[1];
+                } else {
+                    $newOrder['shipping']['address_2'] = '';
+                }
 
-            $newOrder['shipping']['city'] = $order->getShippingAddress()->getCity();
-            $newOrder['shipping']['state'] = $order->getShippingAddress()->getRegion();
-            $newOrder['shipping']['postcode'] = $order->getShippingAddress()->getPostcode();
-            $newOrder['shipping']['country'] = $order->getShippingAddress()->getCountryId();
-            $newOrder['shipping']['email'] = $order->getShippingAddress()->getEmail();
-            $newOrder['shipping']['phone'] = $order->getShippingAddress()->getTelephone();
-            $newOrder['invoice_url'] = 'http://knawat.com/invoices/pdf/example.pdf';
-            $method = $order->getPayment()->getMethod();
-            $additionalInformation = $order->getPayment()->getAdditionalInformation();
-            if (($method != '') && array_key_exists('method_title', $additionalInformation)) {
-                $newOrder['payment_method'] = $method." (".$additionalInformation['method_title'].")";
-            } else {
-                $newOrder['payment_method'] = "Default (Knawat Magento Method)";
-            }
+                $newOrder['shipping']['city'] = $order->getShippingAddress()->getCity();
+                $newOrder['shipping']['state'] = $order->getShippingAddress()->getRegion();
+                $newOrder['shipping']['postcode'] = $order->getShippingAddress()->getPostcode();
+                $newOrder['shipping']['country'] = $order->getShippingAddress()->getCountryId();
+                $newOrder['shipping']['email'] = $order->getShippingAddress()->getEmail();
+                $newOrder['shipping']['phone'] = $order->getShippingAddress()->getTelephone();
+                $newOrder['invoice_url'] = 'http://knawat.com/invoices/pdf/example.pdf';
+                $method = $order->getPayment()->getMethod();
+                $additionalInformation = $order->getPayment()->getAdditionalInformation();
+                if (($method != '') && array_key_exists('method_title', $additionalInformation)) {
+                    $newOrder['payment_method'] = $method." (".$additionalInformation['method_title'].")";
+                } else {
+                    $newOrder['payment_method'] = "Default (Knawat Magento Method)";
+                }
 
-            $newOrder['billing'] = (object) $newOrder['billing'];
-            $newOrder['shipping'] = (object) $newOrder['shipping'];
-            $newOrder = (object) $newOrder;
-            return $newOrder;
+                $newOrder['billing'] = (object) $newOrder['billing'];
+                $newOrder['shipping'] = (object) $newOrder['shipping'];
+                $newOrder = (object) $newOrder;
+                return $newOrder;
+            }catch (\Exception $e) {
+                $this->messageManager->addExceptionMessage($e, __('Something went wrong ') . ' ' . $e->getMessage());
+            }
         }
     }
 
@@ -447,5 +467,23 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                 }
             }
         }
+    }
+
+    /**
+     * @return array
+     */
+    public function getFailedOrders(){
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter(
+                'knawat_sync_failed',
+                1,
+                'eq'
+            )->create();
+        $orders = $this->orderRepository->getList($searchCriteria);
+        $failedOrders = array();
+        foreach ($orders->getItems() as $order) {
+            $failedOrders[] = $order->getId();
+        }
+        return $failedOrders;
     }
 }

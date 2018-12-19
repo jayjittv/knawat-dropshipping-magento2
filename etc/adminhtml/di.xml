@@ -6,5 +6,10 @@
                 <item name="ConnectStore" xsi:type="string">Knawat\Dropshipping\Model\System\Message\ConnectStore</item>
             </argument>
         </arguments>
+        <arguments>
+            <argument name="messages" xsi:type="array">
+                <item name="OrderSync" xsi:type="string">Knawat\Dropshipping\Model\System\Message\OrderSync</item>
+            </argument>
+        </arguments>
     </type>
 </config>
