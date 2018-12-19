@@ -189,6 +189,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         // Import parameters.
         $this->mpFactory = $mpFactory;
         $this->logger = $generalHelper->getLogger();
+        $this->websites = $generalHelper->getWebsites();
+        $this->defaultLanguage = $generalHelper->getDefaultLanguage();
     }
 
     public function import($importType = 'full', $params = [])
@@ -209,9 +211,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             'skipped'           => 0
         ];
         $this->params = array_merge($default_args, $params);
-        $defaultLanguage = $this->getDefaultLanguage();
+        $defaultLanguage = $this->defaultLanguage;
         $mp = $this->generalHelper->createMP();
-        $websites = $this->getWebsites(false);
+        $websites = $this->generalHelper->getWebsites(false);
         if (empty($websites)) {
             return [ 'status' => 'fail', 'message' => __('Websites are not enabled for import.') ];
         }
@@ -553,8 +555,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             if (empty($product)) {
                 return $product;
             }
-            $defaultLanguage = $this->getDefaultLanguage();
-            $websites = $this->getWebsites();
+            $defaultLanguage = $this->defaultLanguage;
+            $weightMultiplier = $this->generalHelper->getWeightMultiplier();
+            if (empty($weightMultiplier)) {
+                $weightMultiplier = 1;
+            }
             $attributes = [];
 
             $sku = $product->sku;
@@ -658,7 +663,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                     $temp_variant['manage_stock'] = true;
                     $temp_variant['stock_quantity'] = isset($variation->quantity) ? $variation->quantity : 0;
-                    $temp_variant['weight'] = isset($variation->weight) ? round(floatval($variation->weight * $this->getWeightMultiplier()), 2) : 0;
+                    $temp_variant['weight'] = isset($variation->weight) ? round(floatval($variation->weight * $weightMultiplier), 2) : 0;
                     if ($varient_id && $varient_id > 0 && $product_id) {
                         // Update Data for existing Variend Here.
                     } else {
@@ -743,17 +748,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         return $product = $this->productModel->getIdBySku($sku);
     }
 
-    /**
-     * Get config data from DB
-     *
-     * @param string $path
-     * @return string
-     */
-    public function getConfigData($path, $store = 'default', $scopeId = 0)
-    {
-        return $this->scopeConfig->getValue(self::PATH_KNAWAT_DEFAULT.$path, $store, $scopeId);
-    }
-
     public function getAttrSetId($attrSetName)
     {
         $attributeSet = $this->attributeSetCollection->create()->addFieldToSelect('*')->addFieldToFilter(
@@ -796,7 +790,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 $attributeId = $this->getAttributeId($attributeCode);
                 $formattedAttributes[$attribute['name']] = [];
-                $websites = $this->getWebsites();
+                $websites = $this->websites;
                 if (empty($attributeId)) {
                     $new_attribute = $this->objectManager->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class);
                     $categorySetup = $this->objectManager->create(\Magento\Catalog\Setup\CategorySetup::class);
@@ -1039,97 +1033,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Get Websites with store views and languages
-     *
-     * @param  boolean $withAdmin
-     * @return array websites
-     */
-    protected function getWebsites($withAdmin = true)
-    {
-        $_storeRepository = $this->objectManager->create('Magento\Store\Model\StoreRepository');
-        $stores = $_storeRepository->getList();
-        $websites = [];
-        $enabaledWebsites = [];
-        foreach ($stores as $store) {
-            if ($store["code"] == 'admin' && !$withAdmin) {
-                continue;
-            }
-            $websiteId = $store["website_id"];
-            if (in_array($websiteId, $enabaledWebsites)) {
-                continue;
-            }
-
-            $defaultConsumerKey = $this->getConfigData('consumer_key');
-            $defaultConsumerSecret = $this->getConfigData('consumer_secret');
-            if (!empty($defaultConsumerKey) && !empty($defaultConsumerSecret)) {
-                $enabaledWebsites[] = $websiteId;
-            } else {
-                $websiteConsumerKey = $this->getConfigData('consumer_key', "websites", $websiteId);
-                $websiteConsumerSecret = $this->getConfigData('consumer_secret', "websites", $websiteId);
-                if (!empty($websiteConsumerKey) && !empty($websiteConsumerSecret)) {
-                        $enabaledWebsites[] = $websiteId;
-                }
-            }
-        }
-        foreach ($stores as $store) {
-            if ($store["code"] == 'admin' && !$withAdmin) {
-                continue;
-            }
-            $websiteId = $store["website_id"];
-            if (!in_array($websiteId, $enabaledWebsites)) {
-                continue;
-            }
-            $storeId = $store["store_id"];
-            $storeData = [
-                'code' => $store["code"]
-            ];
-            $defaultConfigLanguage = $this->getConfigData('store_language');
-            $storeData['lang'] = $defaultConfigLanguage;
-            $storeConfigLanguage = $this->getConfigData('store_language', "stores", $storeId);
-            if (!empty($storeConfigLanguage)) {
-                $storeData['lang'] = $storeConfigLanguage;
-            }
-            if (empty($storeConfigLanguage)) {
-                $websiteConfigLanguage = $this->getConfigData('store_language', "websites", $websiteId);
-                if (!empty($websiteConfigLanguage)) {
-                    $storeData['lang'] = $websiteConfigLanguage;
-                }
-            }
-            $websites[$websiteId][$storeId] = $storeData;
-        }
-        return $websites;
-    }
-
-    /**
-     * Get Websites with store views and languages
-     *
-     * @param  boolean $withAdmin
-     * @return array websites
-     */
-    protected function getDefaultLanguage()
-    {
-        $defaultConfigLanguage = $this->getConfigData('store_language');
-        if (empty($defaultConfigLanguage)) {
-            $defaultConfigLanguage = 'en';
-            $_storeRepository = $this->objectManager->create('Magento\Store\Model\StoreRepository');
-            $stores = $_storeRepository->getList();
-            foreach ($stores as $store) {
-                if ($store["code"] == 'admin') {
-                    continue;
-                }
-                $websiteConsumerKey = $this->getConfigData('consumer_key', "websites", $websiteId);
-                $websiteConsumerSecret = $this->getConfigData('consumer_secret', "websites", $websiteId);
-                $websiteConfigLanguage = $this->getConfigData('store_language', "websites", $websiteId);
-                if (!empty($websiteConsumerKey) && !empty($websiteConsumerSecret) && !empty($websiteConfigLanguage)) {
-                    $defaultConfigLanguage = $websiteConfigLanguage;
-                    break;
-                }
-            }
-        }
-        return $defaultConfigLanguage;
-    }
-
-    /**
      * Get Import Parameters
      *
      * @param string $value Field value.
@@ -1193,21 +1096,5 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 continue;
             }
         }
-    }
-
-    /**
-     * Get Weight Multiplier for convert it to as per magento weight unit.
-     */
-    public function getWeightMultiplier()
-    {
-        $weightUnit = $this->scopeConfig->getValue('general/locale/weight_unit');
-        if (empty($weightUnit)) {
-            $weightUnit = 'lbs';
-        }
-
-        if ($weightUnit === 'kgs') {
-            return 1;
-        }
-        return 2.20462;
     }
 }

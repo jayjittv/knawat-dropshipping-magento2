@@ -33,10 +33,16 @@ class General extends \Magento\Framework\App\Helper\AbstractHelper
      * @var \Magento\Framework\App\Config\ConfigResource\ConfigInterface
      */
     protected $configInterface;
+
     /**
      * @var \Magento\Config\Model\ResourceModel\Config
      */
     protected $configModel;
+
+    /**
+     * @var \Magento\Store\Api\StoreRepositoryInterface
+     */
+    protected $storeRepository;
 
     /**
      * ManageConfig constructor.
@@ -45,31 +51,35 @@ class General extends \Magento\Framework\App\Helper\AbstractHelper
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Framework\Message\ManagerInterface $messageManager
      * @param \Magento\Framework\Module\Manager $moduleManager
+     * @param \Magento\Store\Api\StoreRepositoryInterface $storeRepository
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Knawat\MPFactory $mpFactory,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\App\Config\ConfigResource\ConfigInterface $configInterface,
-        \Magento\Config\Model\ResourceModel\Config $configModel
+        \Magento\Config\Model\ResourceModel\Config $configModel,
+        \Magento\Store\Api\StoreRepositoryInterface $storeRepository
     ) {
         parent::__construct($context);
         $this->mpFactory = $mpFactory;
         $this->scopeConfig = $scopeConfig;
         $this->configInterface = $configInterface;
         $this->configModel = $configModel;
+        $this->storeRepository = $storeRepository;
     }
 
     /**
      * Get config data from DB
      *
      * @param string $path
+     * @param string $store
+     * @param integer $scopeId
      * @return string
      */
-    public function getConfigData($path)
+    public function getConfigData($path, $store = 'default', $scopeId = 0)
     {
-        $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
-        return $this->scopeConfig->getValue(self::PATH_KNAWAT_DEFAULT.$path, $storeScope);
+        return $this->scopeConfig->getValue(self::PATH_KNAWAT_DEFAULT.$path, $store, $scopeId);
     }
 
     /**
@@ -206,6 +216,111 @@ class General extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         return intval($memory_limit) * 1024 * 1024;
+    }
+
+    /**
+     * Get Websites with store views and languages
+     *
+     * @param  boolean $withAdmin
+     * @return array websites
+     */
+    public function getWebsites($withAdmin = true)
+    {
+        $stores = $this->storeRepository->getList();
+        $websites = [];
+        $enabaledWebsites = [];
+        $defaultConsumerKey = $this->getConfigData('consumer_key');
+        $defaultConsumerSecret = $this->getConfigData('consumer_secret');
+        foreach ($stores as $store) {
+            if ($store["code"] == 'admin' && !$withAdmin) {
+                continue;
+            }
+            $websiteId = $store["website_id"];
+            if (in_array($websiteId, $enabaledWebsites)) {
+                continue;
+            }
+
+            if (!empty($defaultConsumerKey) && !empty($defaultConsumerSecret)) {
+                $enabaledWebsites[] = $websiteId;
+            } else {
+                $websiteConsumerKey = $this->getConfigData('consumer_key', "websites", $websiteId);
+                $websiteConsumerSecret = $this->getConfigData('consumer_secret', "websites", $websiteId);
+                if (!empty($websiteConsumerKey) && !empty($websiteConsumerSecret)) {
+                        $enabaledWebsites[] = $websiteId;
+                }
+            }
+        }
+        foreach ($stores as $store) {
+            if ($store["code"] == 'admin' && !$withAdmin) {
+                continue;
+            }
+            $websiteId = $store["website_id"];
+            if (!in_array($websiteId, $enabaledWebsites)) {
+                continue;
+            }
+            $storeId = $store["store_id"];
+            $storeData = [
+                'code' => $store["code"]
+            ];
+            $defaultConfigLanguage = $this->getConfigData('store_language');
+            $storeData['lang'] = $defaultConfigLanguage;
+            $storeConfigLanguage = $this->getConfigData('store_language', "stores", $storeId);
+            if (!empty($storeConfigLanguage)) {
+                $storeData['lang'] = $storeConfigLanguage;
+            }
+            if (empty($storeConfigLanguage)) {
+                $websiteConfigLanguage = $this->getConfigData('store_language', "websites", $websiteId);
+                if (!empty($websiteConfigLanguage)) {
+                    $storeData['lang'] = $websiteConfigLanguage;
+                }
+            }
+            $websites[$websiteId][$storeId] = $storeData;
+        }
+        return $websites;
+    }
+
+    /**
+     * Get Websites with store views and languages
+     *
+     * @param  boolean $withAdmin
+     * @return array websites
+     */
+    public function getDefaultLanguage()
+    {
+        $defaultConfigLanguage = $this->getConfigData('store_language');
+        if (empty($defaultConfigLanguage)) {
+            $defaultConfigLanguage = 'en';
+            $stores = $this->storeRepository->getList();
+            foreach ($stores as $store) {
+                if ($store["code"] == 'admin') {
+                    continue;
+                }
+                $websiteConsumerKey = $this->getConfigData('consumer_key', "websites", $websiteId);
+                $websiteConsumerSecret = $this->getConfigData('consumer_secret', "websites", $websiteId);
+                $websiteConfigLanguage = $this->getConfigData('store_language', "websites", $websiteId);
+                if (!empty($websiteConsumerKey) && !empty($websiteConsumerSecret) && !empty($websiteConfigLanguage)) {
+                    $defaultConfigLanguage = $websiteConfigLanguage;
+                    break;
+                }
+            }
+        }
+        return $defaultConfigLanguage;
+    }
+
+    /**
+     * Get Weight Multiplier for convert it to as per magento weight unit.
+     */
+    public function getWeightMultiplier()
+    {
+        $weightUnit = $this->scopeConfig->getValue('general/locale/weight_unit');
+        if (empty($weightUnit)) {
+            $weightUnit = 'lbs';
+        }
+
+        if ($weightUnit === 'kgs') {
+            return 1;
+        }
+        return 2.20462;
     }
 
     /**
