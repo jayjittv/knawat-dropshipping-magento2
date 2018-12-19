@@ -117,16 +117,15 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     protected $logger;
 
     /**
-     * @var
+     * @var array ImportData
      */
-    protected $mpApi;
     protected $data;
 
-
     /**
-     *knawat default configuration path value
+     * knawat default configuration path value
      */
     const PATH_KNAWAT_DEFAULT = 'knawat/store/';
+
     /**
      * Data constructor.
      * @param \Magento\Framework\App\Helper\Context $context
@@ -659,7 +658,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                     $temp_variant['manage_stock'] = true;
                     $temp_variant['stock_quantity'] = isset($variation->quantity) ? $variation->quantity : 0;
-                    $temp_variant['weight'] = isset($variation->weight) ? round(floatval($variation->weight), 2) : 0;
+                    $temp_variant['weight'] = isset($variation->weight) ? round(floatval($variation->weight * $this->getWeightMultiplier()), 2) : 0;
                     if ($varient_id && $varient_id > 0 && $product_id) {
                         // Update Data for existing Variend Here.
                     } else {
@@ -1194,5 +1193,21 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 continue;
             }
         }
+    }
+
+    /**
+     * Get Weight Multiplier for convert it to as per magento weight unit.
+     */
+    public function getWeightMultiplier()
+    {
+        $weightUnit = $this->scopeConfig->getValue('general/locale/weight_unit');
+        if (empty($weightUnit)) {
+            $weightUnit = 'lbs';
+        }
+
+        if ($weightUnit === 'kgs') {
+            return 1;
+        }
+        return 2.20462;
     }
 }
