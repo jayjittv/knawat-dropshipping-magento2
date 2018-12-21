@@ -310,7 +310,10 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                     if (isset($formated_data['raw_attributes'])) {
                         // Create and Setup Attributes.
-                        $savedAttributes = $this->createUpdateAttributes($formated_data['raw_attributes'], $attributeSetId);
+                        $savedAttributes = $this->createUpdateAttributes(
+                            $formated_data['raw_attributes'],
+                            $attributeSetId
+                        );
                     }
                 }
                 // Create Update Product Variations.

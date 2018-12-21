@@ -71,9 +71,8 @@ class OrderSync implements MessageInterface
      */
     public function getText()
     {
-        $message = __('Some orders are not sycronized with knawat.com , ');
         $url = $this->urlBuilder->getUrl('dropshipping/dropshipping/ordersync/');
-        $message .= __('Please <a href="%1">synchronize it now</a> .', $url);
+        $message = __('Some orders are not sycronized with knawat.com, Please <a href="%1">synchronize it now</a>.', $url);
         return $message;
 
     }

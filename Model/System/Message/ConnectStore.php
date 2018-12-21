@@ -70,10 +70,10 @@ class ConnectStore implements MessageInterface
      */
     public function getText()
     {
-        if($this->confighelper->checkKeyNotAvailable()){
+        if ($this->confighelper->checkKeyNotAvailable()) {
             return __('Please Enter Consumer Key and Consumer Secret Key to connect your store to Knawat.');
-        }else{
-            return __('Your store is not connected to knawat , Please Enter valid consumer key and secret key');
+        } else {
+            return __('Your store is not connected to knawat, Please Enter valid consumer key and secret key');
         }
     }
 
