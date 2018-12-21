@@ -6,6 +6,7 @@
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
                     <item name="label" xsi:type="string" translate="true">Knawat Status</item>
+                    <item name="sortOrder" xsi:type="number">0</item>
                 </item>
             </argument>
         </column>
