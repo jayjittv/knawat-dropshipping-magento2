@@ -349,6 +349,9 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                 $method = $order->getPayment()->getMethod();
                 $additionalInformation = $order->getPayment()->getAdditionalInformation();
                 if (($method != '') && array_key_exists('method_title', $additionalInformation)) {
+                    if($method == 'cashondelivery'){
+                        $method = 'cod';
+                    }
                     $newOrder['payment_method'] = $method." (".$additionalInformation['method_title'].")";
                 } else {
                     $newOrder['payment_method'] = "Default (Knawat Magento Method)";
