@@ -38,9 +38,9 @@ class Ordersync extends \Magento\Backend\App\Action
         foreach ($orderData as $orderId) {
             $this->orderHelper->knawatOrderCreatedUpdated($orderId);
         }
-        if(count($this->orderHelper->getFailedOrders()) > 0){
+        if (count($this->orderHelper->getFailedOrders()) > 0) {
             $this->messageManager->addErrorMessage(__('Something went wrong during order synchronization, please try again.'));
-        }else{
+        } else {
             $this->messageManager->addSuccessMessage(__('Order(s) has been synchronized successfully.'));
         }
         $this->_redirect($this->_redirect->getRefererUrl());

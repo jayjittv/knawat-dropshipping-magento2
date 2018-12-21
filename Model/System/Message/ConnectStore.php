@@ -3,7 +3,6 @@ namespace Knawat\Dropshipping\Model\System\Message;
 
 use Magento\Framework\Notification\MessageInterface;
 
-
 /**
  * Class ConnectStore
  * @package Knawat\Dropshipping\Model\System\Message
@@ -48,7 +47,7 @@ class ConnectStore implements MessageInterface
     public function isDisplayed()
     {
         if ($this->confighelper->isKnawatEnabled()) {
-            if($this->confighelper->checkKeyNotAvailable()){
+            if ($this->confighelper->checkKeyNotAvailable()) {
                 return true;
             }
             $mp = $this->confighelper->createMP();
@@ -58,7 +57,7 @@ class ConnectStore implements MessageInterface
                     return true;
                 }
             }
-        }else{
+        } else {
             return false;
         }
     }
@@ -91,6 +90,4 @@ class ConnectStore implements MessageInterface
     {
         return self::SEVERITY_MAJOR;
     }
-
-
 }

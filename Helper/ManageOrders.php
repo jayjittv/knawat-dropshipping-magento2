@@ -298,7 +298,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                         $items['sku'] = $item->getSku();
                     }
                 }
-                if(isset($items)){
+                if (isset($items)) {
                     $newOrder['items'][] = (object)$items;
                 }
                 /*get billing address*/
@@ -349,7 +349,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                 $method = $order->getPayment()->getMethod();
                 $additionalInformation = $order->getPayment()->getAdditionalInformation();
                 if (($method != '') && array_key_exists('method_title', $additionalInformation)) {
-                    if($method == 'cashondelivery'){
+                    if ($method == 'cashondelivery') {
                         $method = 'cod';
                     }
                     $newOrder['payment_method'] = $method." (".$additionalInformation['method_title'].")";
@@ -361,7 +361,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                 $newOrder['shipping'] = (object) $newOrder['shipping'];
                 $newOrder = (object) $newOrder;
                 return $newOrder;
-            }catch (\Exception $e) {
+            } catch (\Exception $e) {
                 $this->messageManager->addExceptionMessage($e, __('Something went wrong ') . ' ' . $e->getMessage());
             }
         }
@@ -475,7 +475,8 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return array
      */
-    public function getFailedOrders(){
+    public function getFailedOrders()
+    {
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter(
                 'knawat_sync_failed',
@@ -483,7 +484,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                 'eq'
             )->create();
         $orders = $this->orderRepository->getList($searchCriteria);
-        $failedOrders = array();
+        $failedOrders = [];
         foreach ($orders->getItems() as $order) {
             $failedOrders[] = $order->getId();
         }

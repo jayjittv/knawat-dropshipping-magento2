@@ -57,9 +57,9 @@ class OrderSync implements MessageInterface
      */
     public function isDisplayed()
     {
-        if(count($this->orderHelper->getFailedOrders()) > 0){
+        if (count($this->orderHelper->getFailedOrders()) > 0) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -74,7 +74,6 @@ class OrderSync implements MessageInterface
         $url = $this->urlBuilder->getUrl('dropshipping/dropshipping/ordersync/');
         $message = __('Some orders are not sycronized with knawat.com, Please <a href="%1">synchronize it now</a>.', $url);
         return $message;
-
     }
 
     /**
@@ -91,6 +90,4 @@ class OrderSync implements MessageInterface
     {
         return self::SEVERITY_MAJOR;
     }
-
-
 }

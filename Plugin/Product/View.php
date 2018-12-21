@@ -25,7 +25,7 @@ class View
     public function __construct(
         \Magento\Framework\Registry $registry,
         \Knawat\Dropshipping\Helper\SingleProductUpdate $singleProductHelper
-    ){
+    ) {
         $this->_coreRegistry = $registry;
         $this->singleProductHelper = $singleProductHelper;
     }
@@ -38,11 +38,11 @@ class View
      */
     public function afterExecute(\Magento\Catalog\Controller\Product\View $subject, $result)
     {
-        if($result != null){
+        if ($result != null) {
             $isKnawat = $this->getProduct()->getIsKnawat();
-            if($isKnawat){
+            if ($isKnawat) {
                 $sku = $this->getProduct()->getSku();
-                if(!empty($sku)){
+                if (!empty($sku)) {
                     $this->singleProductHelper->productUpdate($sku);
                 }
             }
@@ -57,6 +57,4 @@ class View
     {
         return $this->_coreRegistry->registry('current_product');
     }
-
-
 }

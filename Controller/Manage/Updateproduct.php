@@ -3,7 +3,6 @@ namespace Knawat\Dropshipping\Controller\Manage;
 
 use \Magento\Framework\App\Action\Action;
 
-
 /**
  * Class Updateproduct
  * @package Knawat\Dropshipping\Controller\Manage
@@ -32,8 +31,7 @@ class Updateproduct extends Action
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
         \Knawat\Dropshipping\Helper\SingleProductUpdate $singleProductHelper,
         \Knawat\Dropshipping\Helper\General $generalHelper
-    )
-    {
+    ) {
         $this->resultPageFactory = $resultPageFactory;
         $this->singleProductHelper = $singleProductHelper;
         $this->generalHelper = $generalHelper;
@@ -47,11 +45,10 @@ class Updateproduct extends Action
     public function execute()
     {
         $knawatParams = $this->getRequest()->getParam("knawat_key");
-        $knawatKey = $this->generalHelper->getConfigDirect('knawt_security',true);
+        $knawatKey = $this->generalHelper->getConfigDirect('knawt_security', true);
         if (md5($knawatKey) === $knawatParams) {
             $sku = $this->getRequest()->getParam('sku');
             $this->singleProductHelper->runSingleImport($sku);
         }
     }
-
 }

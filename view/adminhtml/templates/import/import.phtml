@@ -11,11 +11,11 @@
                 <label for="start_stop_import" class="knawat-label">
                     <span class="knawat-admin-label"><strong><?php echo __('Start product import') ?></strong></span>
                 </label>
-                <button type="submit" class="action submit primary input-text" title="<?php echo __('Start Import') ?>" <?php if($block->getImportStatus()): echo "disabled";  endif; ?>>
+                <button type="submit" class="action submit primary input-text" title="<?php echo __('Start Import') ?>" <?php if ($block->getImportStatus()) {  echo "disabled"; }?>>
                     <span><?php echo __('Start Import') ?></span>
                 </button>
 
-                <?php if($block->getImportStatus()): ?>
+                <?php if ($block->getImportStatus()) : ?>
                     <input name="operation" type="hidden" value="stop_import" />
                     <button type="submit" class="action submit input-text" title="<?php echo __('Stop Import') ?>" onclick="return confirm('<?php echo __('Are you sure? do you really want to stop import?') ?>');">
                         <span><?php echo __('Stop Import') ?></span>
@@ -23,19 +23,19 @@
                 <?php endif; ?>
 
                 <?php
-                if($block->getImportStatus()){
+                if ($block->getImportStatus()) {
                     $importData = $block->getImportStatus();
                     $imported = $failed = $updated = $skipped = 0;
-                    if(array_key_exists('imported', $importData)){
+                    if (array_key_exists('imported', $importData)) {
                         $imported = $importData['imported'];
                     }
-                    if(array_key_exists('failed', $importData)){
+                    if (array_key_exists('failed', $importData)) {
                         $failed = $importData['failed'];
                     }
-                    if(array_key_exists('updated', $importData)){
+                    if (array_key_exists('updated', $importData)) {
                         $updated = $importData['updated'];
                     }
-                    if(array_key_exists('skipped', $importData)){
+                    if (array_key_exists('skipped', $importData)) {
                         $skipped = $importData['skipped'];
                     } ?>
                     <div class="knawat-admin-control">
@@ -44,37 +44,41 @@
                         </label>
                         <span><i><?php echo __("Product import is in-progress already. you can't start import now. Please find current import status below."); ?></i></span>
                     </div>
-                    <?php if(isset($imported)): ?>
+                    <?php if (isset($imported)) : ?>
                         <div class="knawat-admin-control">
                         <label for="start_stop_import" class="knawat-label">
                             <span class="knawat-admin-label"></span>
                         </label>
                         <span><strong><?php echo __("Imported : "); ?></strong></span>
-                        <?php echo $imported. ' ' . __("Products"); endif; ?>
+                        <?php echo $imported. ' ' . __("Products");
+                    endif; ?>
                     </div>
-                    <?php if(isset($updated)): ?>
+                    <?php if (isset($updated)) : ?>
                         <div class="knawat-admin-control">
                         <label for="start_stop_import" class="knawat-label">
                             <span class="knawat-admin-label"></span>
                         </label>
                         <span><strong><?php echo __("Updated : "); ?></strong></span>
-                        <?php echo $updated. ' ' . __("Products"); endif; ?>
+                        <?php echo $updated. ' ' . __("Products");
+                    endif; ?>
                     </div>
-                    <?php if(isset($skipped)): ?>
+                    <?php if (isset($skipped)) : ?>
                         <div class="knawat-admin-control">
                         <label for="start_stop_import" class="knawat-label">
                             <span class="knawat-admin-label"></span>
                         </label>
                         <span><strong><?php echo __("Skipped : "); ?></strong></span>
-                        <?php echo $skipped. ' ' . __("Products"); endif; ?>
+                        <?php echo $skipped. ' ' . __("Products");
+                    endif; ?>
                     </div>
-                    <?php if(isset($failed)): ?>
+                    <?php if (isset($failed)) : ?>
                         <div class="knawat-admin-control">
                         <label for="start_stop_import" class="knawat-label">
                             <span class="knawat-admin-label"></span>
                         </label>
                         <span><strong><?php echo __("Failed : "); ?></strong></span>
-                        <?php echo $failed. ' ' . __("Products"); endif; ?>
+                        <?php echo $failed. ' ' . __("Products");
+                    endif; ?>
                     </div>
                 <?php }
                 ?>

@@ -329,7 +329,8 @@ class General extends \Magento\Framework\App\Helper\AbstractHelper
      * @param integer $length
      * @return string $randomString
      */
-    public function generateRandomString($length = 10) {
+    public function generateRandomString($length = 10)
+    {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
         $randomString = '';

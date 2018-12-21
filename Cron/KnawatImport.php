@@ -25,7 +25,7 @@ class KnawatImport
     }
 
     /**
-     *execute product import with cron
+     * execute product import with cron
      */
     public function execute()
     {

@@ -91,7 +91,7 @@ class ManageConfig extends \Magento\Framework\App\Helper\AbstractHelper
             } else {
                 return $this->mpApi;
             }
-        }else{
+        } else {
             return false;
         }
     }
@@ -109,7 +109,8 @@ class ManageConfig extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return bool
      */
-    public function checkKeyNotAvailable(){
+    public function checkKeyNotAvailable()
+    {
         $consumer_key = $this->getConfigData('consumer_key');
         $consumer_secret = $this->getConfigData('consumer_secret');
         if (($consumer_key == '') || ($consumer_secret = '')) {

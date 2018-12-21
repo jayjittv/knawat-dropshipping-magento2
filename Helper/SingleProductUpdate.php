@@ -62,10 +62,10 @@ class SingleProductUpdate extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function productUpdate($sku)
     {
-        $knawatKey = $this->generalHelper->getConfigDirect('knawt_security',true);
-        if(empty($knawatKey)){
+        $knawatKey = $this->generalHelper->getConfigDirect('knawt_security', true);
+        if (empty($knawatKey)) {
             $knawatKey = $this->generalHelper->generateRandomString();
-            $this->generalHelper->setConfig(self::PATH_KNAWAT_DEFAULT."knawt_security",$knawatKey);
+            $this->generalHelper->setConfig(self::PATH_KNAWAT_DEFAULT."knawt_security", $knawatKey);
         }
         $encryptedKey = md5($knawatKey);
         $requestData = ['sku' => $sku,'knawat_key' => $encryptedKey];
@@ -82,10 +82,9 @@ class SingleProductUpdate extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @param $sku
      */
-    public function runSingleImport($sku){
-      $item = array('sku' => $sku);
-      $this->importer->import('single', $item);
-  }
-
-
+    public function runSingleImport($sku)
+    {
+        $item = ['sku' => $sku];
+        $this->importer->import('single', $item);
+    }
 }

@@ -2,7 +2,6 @@
 
 namespace Knawat\Dropshipping\Block\Adminhtml;
 
-
 /**
  * Class Import
  * @package Knawat\Dropshipping\Block\Adminhtml
@@ -54,7 +53,8 @@ class Import extends \Magento\Backend\Block\Template
      * @return bool|mixed
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getImportStatus(){
+    public function getImportStatus()
+    {
         $configConnection = $this->configModel->getConnection();
         $identifier = 'kdropship_import';
         $select = $configConnection->select()->from($this->configModel->getMainTable())->where('path=?', self::PATH_KNAWAT_DEFAULT.$identifier);
@@ -69,5 +69,4 @@ class Import extends \Magento\Backend\Block\Template
         }
         return false;
     }
-
 }

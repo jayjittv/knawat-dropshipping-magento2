@@ -73,9 +73,9 @@ class InstallData implements InstallDataInterface
         $installer->startSetup();
         /*create Knawat Attribute set*/
         $attributeSetIds = 0;
-        $attributeModel = $this->attributeSetFactory->create()->load('Knawat','attribute_set_name');
+        $attributeModel = $this->attributeSetFactory->create()->load('Knawat', 'attribute_set_name');
         $attributeSetIds = $attributeModel->getAttributeSetId();
-        if($attributeSetIds == 0){
+        if ($attributeSetIds == 0) {
             $categorySetup = $this->categorySetupFactory->create(['setup' => $setup]);
             $attributeSet = $this->attributeSetFactory->create();
             $attributeSet = $this->attributeSetFactory->create();
@@ -85,26 +85,26 @@ class InstallData implements InstallDataInterface
             'attribute_set_name' => 'Knawat', // define custom attribute set name here
             'entity_type_id' => $entityTypeId,
             'sort_order' => 200,
-        ];
-        $attributeSet->setData($data);
-        $attributeSet->validate();
-        $attributeSet->save();
-        $attributeSet->initFromSkeleton($attributeSetId);
-        $attributeSet->save();
-    }
+            ];
+            $attributeSet->setData($data);
+            $attributeSet->validate();
+            $attributeSet->save();
+            $attributeSet->initFromSkeleton($attributeSetId);
+            $attributeSet->save();
+        }
     /** @var EavSetup $eavSetup */
-    $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
         // /**
         //  * Add attributes to the eav/attribute
         //  * create is_knawat Attribute for product
         //  */
-    $attributeId = $this->eavAttribute->getIdByCode(\Magento\Catalog\Model\Product::ENTITY, 'is_knawat');
-    if(!$attributeId) {
-        $eavSetup->addAttribute(
-            \Magento\Catalog\Model\Product::ENTITY,
-            'is_knawat', /* Custom Attribute Code */
-            [
+        $attributeId = $this->eavAttribute->getIdByCode(\Magento\Catalog\Model\Product::ENTITY, 'is_knawat');
+        if (!$attributeId) {
+            $eavSetup->addAttribute(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'is_knawat', /* Custom Attribute Code */
+                [
                 'group' => 'General',
                 'type' => 'int',
                 'backend' => '',
@@ -124,20 +124,20 @@ class InstallData implements InstallDataInterface
                 'visible_on_front' => false,
                 'used_in_product_listing' => true,
                 'unique' => false
-            ]
-        );
-    }
+                ]
+            );
+        }
         // /**
         //  * Add attributes to the Sales Ortder
         //  * create is_knawat Attribute for order
         //  */
-    $salesSetup = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $installer]);
-    $salesSetup->addAttribute(Order::ENTITY, 'is_knawat', [
+        $salesSetup = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $installer]);
+        $salesSetup->addAttribute(Order::ENTITY, 'is_knawat', [
         'type' => \Magento\Framework\DB\Ddl\Table::TYPE_SMALLINT,
         'default' => '0',
         'visible' => false,
         'nullable' => true
-    ]);
+        ]);
         /**
          * create knawat_order_id Attribute for order
          */

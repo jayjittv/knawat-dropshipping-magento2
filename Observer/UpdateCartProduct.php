@@ -3,7 +3,6 @@ namespace Knawat\Dropshipping\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
 
-
 /**
  * Class UpdateCartProduct
  * @package Knawat\Dropshipping\Observer
@@ -44,9 +43,9 @@ class UpdateCartProduct implements ObserverInterface
         $id = $item->getProduct()->getId();
         $product = $this->productModel->load($id);
         $isKnawat = $product->getIsKnawat();
-        if($isKnawat){
+        if ($isKnawat) {
             $sku = $product->getSku();
-            if(!empty($sku)){
+            if (!empty($sku)) {
                 $this->singleProductHelper->productUpdate($sku);
             }
         }
