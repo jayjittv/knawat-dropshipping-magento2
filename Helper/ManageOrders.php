@@ -79,6 +79,10 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
      */
     protected $searchCriteriaBuilder;
     /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+    /**
      * Data constructor.
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -97,6 +101,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         array $params = []
     ) {
         $default_args = [
@@ -113,6 +118,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
         $this->saveTransaction = $transactionFactory->create();
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -345,7 +351,6 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                 $newOrder['shipping']['country'] = $order->getShippingAddress()->getCountryId();
                 $newOrder['shipping']['email'] = $order->getShippingAddress()->getEmail();
                 $newOrder['shipping']['phone'] = $order->getShippingAddress()->getTelephone();
-                $newOrder['invoice_url'] = 'http://knawat.com/invoices/pdf/example.pdf';
                 $method = $order->getPayment()->getMethod();
                 $additionalInformation = $order->getPayment()->getAdditionalInformation();
                 if (($method != '') && array_key_exists('method_title', $additionalInformation)) {
@@ -357,6 +362,13 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                     $newOrder['payment_method'] = "Default (Knawat Magento Method)";
                 }
 
+                $url = $this->storeManager->getStore()->getBaseUrl()."dropshipping/manage/knawatinvoice/";
+                $orderIdLabel = base64_encode('order_id');
+                $orderIdParam = base64_encode($orderId);
+                $protectCodeLabel = base64_encode('protect_code');
+                $protectCode =  $order->getProtectCode();
+                $protectCodeParam = base64_encode($protectCode);
+                $newOrder['invoice_url'] = $url.$orderIdLabel."-".$orderIdParam."-".$protectCodeLabel."-".$protectCodeParam;
                 $newOrder['billing'] = (object) $newOrder['billing'];
                 $newOrder['shipping'] = (object) $newOrder['shipping'];
                 $newOrder = (object) $newOrder;

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<page layout="1column" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="sales_order_invoice_renderers"/>
+    <update handle="sales_order_item_price"/>
+    <body>
+        <referenceContainer name="content">
+            <referenceBlock name="header.panel.wrapper" remove="true" />
+            <referenceBlock name="top.search" remove="true"/>
+            <referenceBlock name="minicart" remove="true"/>
+            <referenceBlock name="navigation.sections" display="false" />
+            <referenceContainer name="footer" remove="true"/>
+            <block class="Knawat\Dropshipping\Block\Knawatinvoice" name="knawat.invoice" template="Knawat_Dropshipping::invoice.phtml" >
+                <block class="Magento\Framework\View\Element\RendererList" name="sales.order.invoice.renderers" as="renderer.list"/>
+                <block class="Magento\Sales\Block\Order\Invoice\Totals" name="invoice_totals" template="Magento_Sales::order/totals.phtml">
+                    <arguments>
+                        <argument name="label_properties" xsi:type="string">colspan="4" class="mark"</argument>
+                        <argument name="value_properties" xsi:type="string">class="amount"</argument>
+                    </arguments>
+                    <block class="Magento\Tax\Block\Sales\Order\Tax" name="tax" template="Magento_Tax::order/tax.phtml"/>
+                </block>
+                <block class="Magento\Sales\Block\Order\Comments" name="invoice_comments" template="Magento_Sales::order/comments.phtml"/>
+            </block>
+        </referenceContainer>
+    </body>
+</page>
