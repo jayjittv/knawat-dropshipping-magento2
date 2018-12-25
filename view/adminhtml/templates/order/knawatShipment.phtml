@@ -1,0 +1,44 @@
+<?php $order = $block->getOrder();
+if(!empty($order)){
+    if(($order->getShipmentProviderName()) || ($order->getShipmentTrackingNumber())){
+        if(($order->getShipmentProviderName()) && ($order->getShipmentTrackingNumber())) {
+            $provider = $order->getShipmentProviderName();
+            $trackingNumber = $order->getShipmentTrackingNumber();
+            $trackLink = $block->getTracking($provider,$trackingNumber);
+        }
+
+        ?>
+        <section class="admin__page-section order-addresses">
+            <div class="admin__page-section-title">
+                <span class="title"><?= $block->escapeHtml(__('Knawat Shipment & Tracking')) ?></span>
+            </div>
+            <?php if($order->getShipmentProviderName()) { ?>
+                <div class="admin__page-section-content">
+                    <div class="admin__page-section-item order-billing-address">
+                        <?php /* Billing Address */ ?>
+                        <div class="admin__page-section-item-title">
+                            <span class="title"><?= $block->escapeHtml(__('Shipment Provider Name :')) ?></span>
+                            <div class="actions"><?php echo $order->getShipmentProviderName(); ?></div>
+                        </div>
+                    </div>
+                </div>
+            <?php } ?>
+            <?php if($order->getShipmentTrackingNumber()) { ?>
+                <div class="admin__page-section-content">
+                    <div class="admin__page-section-item order-billing-address">
+                        <?php /* Billing Address */ ?>
+                        <div class="admin__page-section-item-title">
+                            <span class="title"><?= $block->escapeHtml(__('Shipment Tracking Number :')) ?></span>
+                            <div class="actions"><?php echo $order->getShipmentTrackingNumber(); ?></div>
+                            <?php if(isset($trackLink)){ ?>
+                                <div class="actions"><a href="<?php echo $trackLink; ?>" target="_blank"><?= $block->escapeHtml(__('Track')) ?></a></div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                </div>
+            <?php } ?>
+        </section>
+        <?php
+    }
+}
+?>
