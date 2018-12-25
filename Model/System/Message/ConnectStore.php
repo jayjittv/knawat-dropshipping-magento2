@@ -9,19 +9,26 @@ use Magento\Framework\Notification\MessageInterface;
  */
 class ConnectStore implements MessageInterface
 {
+
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
+    protected $urlBuilder;
     /**
      * @var
      */
     protected $configHelper;
-
     /**
      * ConnectStore constructor.
      * @param \Knawat\Dropshipping\Helper\ManageConfig $confighelper
+     * @param \Magento\Framework\UrlInterface $urlBuilder
      */
     public function __construct(
-        \Knawat\Dropshipping\Helper\ManageConfig $confighelper
+        \Knawat\Dropshipping\Helper\ManageConfig $confighelper,
+        \Magento\Framework\UrlInterface $urlBuilder
     ) {
         $this->confighelper = $confighelper;
+        $this->urlBuilder = $urlBuilder;
     }
 
     /**
@@ -69,10 +76,11 @@ class ConnectStore implements MessageInterface
      */
     public function getText()
     {
+        $url = $this->urlBuilder->getUrl('adminhtml/system_config/edit/section/knawat');
         if ($this->confighelper->checkKeyNotAvailable()) {
-            return __('Please Enter Consumer Key and Consumer Secret Key to connect your store to Knawat.');
+            return __('Please <a href="%1">Enter</a> Consumer Key and Consumer Secret Key to connect your store to Knawat.',$url);
         } else {
-            return __('Your store is not connected to knawat, Please Enter valid consumer key and secret key');
+            return __('Your store is not connected to knawat, Please <a href=""%l>Enter</a> valid consumer key and secret key',$url);
         }
     }
 
