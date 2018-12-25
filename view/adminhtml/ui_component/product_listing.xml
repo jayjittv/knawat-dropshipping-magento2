@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <listingToolbar name="listing_top">
+        <filters name="listing_filters">
+            <filterSelect name="is_knawat" provider="${ $.parentName }">
+                <settings>
+                    <options class="Knawat\Dropshipping\Model\Product\Attribute\Source\Boolean"/>
+                    <caption translate="true">All Products</caption>
+                    <label translate="true">Product Source</label>
+                    <dataScope>is_knawat</dataScope>
+                </settings>
+            </filterSelect>
+        </filters>
+    </listingToolbar>
+</listing>
