@@ -1,0 +1,58 @@
+"Something went wrong ","Something went wrong "
+"About Your Invoice","About Your Invoice"
+"Dropshipping Import","Dropshipping Import"
+"Something went wrong during order synchronization, please try again.","Something went wrong during order synchronization, please try again."
+"Order(s) has been synchronized successfully.","Order(s) has been synchronized successfully."
+"Knawat Product import has been stopped successfully.","Knawat Product import has been stopped successfully."
+"Knawat Product import has been started successfully.","Knawat Product import has been started successfully."
+"Websites are not enabled for import.","Websites are not enabled for import."
+"Please provide product sku.","Please provide product sku."
+"Something went wrong during get data from Knawat MP API. Please try again later.","Something went wrong during get data from Knawat MP API. Please try again later."
+English,English
+Arabic,Arabic
+Turkish,Turkish
+"Only Knawat Products","Only Knawat Products"
+"Please Enter Consumer Key and Consumer Secret Key to connect your store to Knawat.","Please Enter Consumer Key and Consumer Secret Key to connect your store to Knawat."
+"Your store is not connected to knawat, Please Enter valid consumer key and secret key","Your store is not connected to knawat, Please Enter valid consumer key and secret key"
+"Some orders are not sycronized with knawat.com, Please <a href=""%1"">synchronize it now</a>.","Some orders are not sycronized with knawat.com, Please <a href=""%1"">synchronize it now</a>."
+"Product Import","Product Import"
+"Plugin auto import/update products from knawat.com in background on regular interval. But, if you want then you can manually start import.","Plugin auto import/update products from knawat.com in background on regular interval. But, if you want then you can manually start import."
+"Start product import","Start product import"
+"Start Import","Start Import"
+"Stop Import","Stop Import"
+"Are you sure? do you really want to stop import?","Are you sure? do you really want to stop import?"
+"Product import is in-progress already. you can't start import now. Please find current import status below.","Product import is in-progress already. you can't start import now. Please find current import status below."
+"Imported : ","Imported : "
+Products,Products
+"Updated : ","Updated : "
+"Skipped : ","Skipped : "
+"Failed : ","Failed : "
+"Knawat Shipment & Tracking","Knawat Shipment & Tracking"
+"Shipment Provider Name :","Shipment Provider Name :"
+"Shipment Tracking Number :","Shipment Tracking Number :"
+Track,Track
+"""Order #"" .","""Order #"" ."
+%1,%1
+"Order Information","Order Information"
+"Shipping Address","Shipping Address"
+"Shipping Method","Shipping Method"
+"No shipping information available","No shipping information available"
+"Billing Address","Billing Address"
+"Payment Method","Payment Method"
+"Invoice #","Invoice #"
+"Items Invoiced","Items Invoiced"
+"Product Name","Product Name"
+SKU,SKU
+Price,Price
+"Qty Invoiced","Qty Invoiced"
+Subtotal,Subtotal
+Knawat,Knawat
+Dropshipping,Dropshipping
+"General Configuration","General Configuration"
+"Knawat Consumer Key","Knawat Consumer Key"
+"Knawat Consumer Secret","Knawat Consumer Secret"
+"Products Batch Size","Products Batch Size"
+"Select Language","Select Language"
+"All Products","All Products"
+"Product Source","Product Source"
+"Knawat Status","Knawat Status"
