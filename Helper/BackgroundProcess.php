@@ -154,14 +154,13 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
             $this->setConfig(self::PATH_KNAWAT_DEFAULT."knawt_security", $knawatKey);
         }
         $encryptedKey = md5($knawatKey);
-        $requestData = ['knawat_key' => $encryptedKey];
         if ($start) {
             $this->setConfig($this->identifier.'_start_time', time());
         }
         try {
             $this->curl->setTimeout(1);
-            $url = $this->storeManager->getStore()->getBaseUrl()."dropshipping/manage/request/";
-            $this->curl->post($url, $requestData);
+            $url = $this->storeManager->getStore()->getBaseUrl()."dropshipping/manage/request?knawat_key=$encryptedKey";
+            $this->curl->get($url);
         } catch (\Exception $e) {
             return true;
         }
