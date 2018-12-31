@@ -2,7 +2,6 @@
 
 namespace Knawat\Dropshipping\Model\Product\Attribute\Source;
 
-
 /**
  * Class Boolean
  * @package Knawat\Dropshipping\Model\Product\Attribute\Source

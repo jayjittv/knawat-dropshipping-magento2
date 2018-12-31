@@ -939,7 +939,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                     $_attributeOptionManagement = $this->objectManager->create(\Magento\Eav\Api\AttributeOptionManagementInterface::class);
                                     $_attributeOptionLabel = $this->objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
 
-                                    $storeLabels = '';
+                                    $storeLabels = [];
                                     foreach ($storeOption as $sKey => $sOption) {
                                         $_attributeOptionLabel2 = $this->objectManager->create(\Magento\Eav\Api\Data\AttributeOptionLabelInterface::class);
                                         $_attributeOptionLabel2->setStoreId($sKey);
