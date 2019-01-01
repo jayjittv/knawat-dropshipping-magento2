@@ -3,7 +3,7 @@
     <body>
         <referenceContainer name="content">
             <block class="Knawat\Dropshipping\Block\Adminhtml\Import" name="import.import"
-                   template="Knawat_Dropshipping::import/import.phtml" cacheable="false"/>
+                   template="Knawat_Dropshipping::import/import.phtml"/>
         </referenceContainer>
     </body>
 </page>
