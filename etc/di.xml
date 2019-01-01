@@ -7,7 +7,4 @@
 			</argument>
 		</arguments>
 	</virtualType>
-	<type name="Magento\Catalog\Controller\Product\View">
-		<plugin name="productview" type="Knawat\Dropshipping\Plugin\Product\View" sortOrder="1" />
-	</type>
 </config>
