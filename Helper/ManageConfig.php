@@ -117,4 +117,18 @@ class ManageConfig extends \Magento\Framework\App\Helper\AbstractHelper
             return true;
         }
     }
+
+    public function getToken(){
+        $mp = $this->createMP();
+        if (!empty($mp)) {
+                $token= $mp->getAccessToken();
+                if ($token != '') {
+                    return $token;
+                }else{
+                    return false;
+                }
+            }
+            return false;
+
+    }
 }

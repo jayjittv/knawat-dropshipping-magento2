@@ -54,16 +54,7 @@ class ConnectStore implements MessageInterface
     public function isDisplayed()
     {
         if ($this->confighelper->isKnawatEnabled()) {
-            if ($this->confighelper->checkKeyNotAvailable()) {
-                return true;
-            }
-            $mp = $this->confighelper->createMP();
-            if (!empty($mp)) {
-                $token= $mp->getAccessToken();
-                if ($token == '') {
-                    return true;
-                }
-            }
+            return true;
         } else {
             return false;
         }
@@ -77,10 +68,14 @@ class ConnectStore implements MessageInterface
     public function getText()
     {
         $url = $this->urlBuilder->getUrl('adminhtml/system_config/edit/section/knawat');
-        if ($this->confighelper->checkKeyNotAvailable()) {
-            return __('Please <a href="%1">Enter</a> Consumer Key and Consumer Secret Key to connect your store to Knawat, Please go to <a href="%1">Settings</a> to add keys.', $url);
-        } else {
-            return __('Your store is not connected to knawat, Please <a href="%l">Enter</a> valid consumer key and secret key from <a href="%1">Settings</a>.', $url);
+        if($this->confighelper->getToken()){
+            return __('Your Store is successfully connected to Knawat.');
+        }else{
+            if ($this->confighelper->checkKeyNotAvailable()) {
+                return __('Please <a href="%1">Enter</a> Consumer Key and Consumer Secret Key to connect your store to Knawat, Please go to <a href="%1">Settings</a> to add keys.', $url);
+            } else {
+                return __('Your store is not connected to knawat, Please <a href="%l">Enter</a> valid consumer key and secret key from <a href="%1">Settings</a>.', $url);
+            }
         }
     }
 
