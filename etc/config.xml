@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <knawat>
+            <store>
+                <product_batch_size>25</product_batch_size>                
+            </store>
+        </knawat>
+    </default>
+</config>
