@@ -1061,7 +1061,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         if (empty($imageUrls)) {
             return false;
         }
-
         // Temporory Directory for Image.
         $tmpDir = $this->directoryList->getPath(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA) . DIRECTORY_SEPARATOR . 'tmp';
         // Create folder if it is not exists.
@@ -1070,6 +1069,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         foreach ($imageUrls as $index => $imageUrl) {
             // File Path for download image.
             $newFileName = $tmpDir . DIRECTORY_SEPARATOR . mt_rand() . baseName($imageUrl);
+            $newFileName = strtok($newFileName, "?");
             $imageType = null;
             if ($index == 0) {
                 $imageType = ['image', 'small_image', 'thumbnail'];
@@ -1081,6 +1081,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             curl_setopt($ch, CURLOPT_BINARYTRANSFER, 1);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
             $raw_image_data = curl_exec($ch);
             curl_close($ch);
             try {
