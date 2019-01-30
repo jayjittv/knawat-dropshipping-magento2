@@ -74,7 +74,7 @@ class ConnectStore implements MessageInterface
             if ($this->confighelper->checkKeyNotAvailable()) {
                 return __('Please <a href="%1">Enter</a> Consumer Key and Consumer Secret Key to connect your store to Knawat, Please go to <a href="%1">Settings</a> to add keys.', $url);
             } else {
-                return __('Your store is not connected to knawat, Please <a href="%l">Enter</a> valid consumer key and secret key from <a href="%1">Settings</a>.', $url);
+                return __('Your store is not connected to Knawat, Please <a href="%l">Enter</a> valid consumer key and secret key from <a href="%1">Settings</a>.', $url);
             }
         }
     }
