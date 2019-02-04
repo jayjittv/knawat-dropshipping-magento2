@@ -18,6 +18,11 @@ class Import extends \Magento\Backend\Block\Template
      * @var \Magento\Config\Model\ResourceModel\Config
      */
     protected $configModel;
+    
+    /**
+     * @var
+     */
+    protected $configHelper;
 
     /**
      *knawat default configuration path value
@@ -32,10 +37,12 @@ class Import extends \Magento\Backend\Block\Template
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Config\Model\ResourceModel\Config $configModel
+        \Magento\Config\Model\ResourceModel\Config $configModel,
+        \Knawat\Dropshipping\Helper\ManageConfig $confighelper
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->configModel = $configModel;
+        $this->confighelper = $confighelper;
         parent::__construct($context);
     }
 
@@ -68,5 +75,13 @@ class Import extends \Magento\Backend\Block\Template
             return $batch;
         }
         return false;
+    }
+
+    public function getKnawatConnection(){
+         if($this->confighelper->getToken()){
+            return true;
+         }else{
+            return false;
+         }
     }
 }

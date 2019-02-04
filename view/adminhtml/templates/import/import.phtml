@@ -1,3 +1,6 @@
+<?php  $connection = $block->getKnawatConnection(); 
+       $importStatus = $block->getImportStatus();     
+?>
 <div class="admin__scope-old">
     <fieldset class="fieldset admin__fieldset">
         <legend class="admin__legend legend">
@@ -11,7 +14,7 @@
                 <label for="start_stop_import" class="knawat-label">
                     <span class="knawat-admin-label"><strong><?php echo __('Start product import') ?></strong></span>
                 </label>
-                <button type="submit" class="action submit primary input-text" title="<?php echo __('Start Import') ?>" <?php if ($block->getImportStatus()) {  echo "disabled"; }?>>
+                <button type="submit" class="action submit primary input-text" title="<?php echo __('Start Import') ?>" <?php if (!$connection || $importStatus ) {  echo "disabled"; }?>>
                     <span><?php echo __('Start Import') ?></span>
                 </button>
 
@@ -83,6 +86,14 @@
                 <?php }
                 ?>
             </div>
+            <?php if(!$connection){ ?>
+            <div class="field knawat-admin-control">
+                <label for="start_stop_import" class="knawat-label">
+                    <span class="knawat-admin-label"></span>
+                </label>
+                <span><?php echo __("You're not connected to ") ?><a href="https://knawat.com/" target="_blank"><?php echo __("knawat.com "); ?></a><?php echo __(", please make a connection for start import."); ?></span>
+            </div>
+            <?php } ?>
         </form>
     </fieldset>
 </div>
