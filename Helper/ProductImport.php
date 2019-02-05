@@ -121,6 +121,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
      */
     protected $data;
 
+    protected $productMetadata;
+
     /**
      * knawat default configuration path value
      */
@@ -166,7 +168,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \Magento\Catalog\Api\Data\ProductInterfaceFactory $productFactory,
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
-        \Knawat\MPFactory $mpFactory
+        \Knawat\MPFactory $mpFactory,
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata
     ) {
         parent::__construct($context);
         $this->productModel = $productModel;
@@ -191,6 +194,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         $this->logger = $generalHelper->getLogger();
         $this->websites = $generalHelper->getWebsites();
         $this->defaultLanguage = $generalHelper->getDefaultLanguage();
+        $this->productMetadata = $productMetadata;
     }
 
     public function import($importType = 'full', $params = [])
@@ -421,7 +425,118 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             }
                         }
                     } else {
-                        // Main Product.
+                        // Main Product with versions.
+                        $version = $this->productMetadata->getVersion();
+                        $versionCompare = version_compare($version,  "2.2");
+                        if($versionCompare == -1){
+                            /*code for version 2.1.x*/
+                        $main_product = $this->productFactory->create();
+                        $main_product->setSku($formated_data['sku']);
+                        $main_product->setName($formated_data['name']);
+                        $main_product->setUrlKey(
+                            $this->translitUrl->filter($formated_data['name'].' '.$formated_data['sku'])
+                        );
+                        $main_product->setDescription($formated_data['description']);
+                        $main_product->setAttributeSetId($attributeSetId);
+                        $main_product->setStatus(
+                            \Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED
+                        );
+                        $main_product->setData('is_knawat', 1);
+                        $main_product->setCategoryIds([$defaultCategoryId]);
+                        $main_product->setStockData(
+                            [
+                                'use_config_manage_stock' => 0,
+                                'manage_stock' => 1,
+                                'is_in_stock' => ($totalQty > 0) ? 1 : 0
+                            ]
+                        );
+
+                        $configurableAttributesIds = [];
+                        foreach ($savedAttributes as $savedAttribute) {
+                            if (isset($savedAttribute['attr_id'])) {
+                                $configurableAttributesIds[] = $savedAttribute['attr_id'];
+                            }
+                        }
+                        // Super Attribute Ids Used To Create Configurable Product.
+                        $configurableAttributesIds = array_unique($configurableAttributesIds);
+
+                        $main_product->setAffectConfigurableProductAttributes($attributeSetId);
+                        $main_product->save();
+                        $productId = $main_product->getId();
+                        $main_product = $this->productRepository->getById($productId);
+                        $position = 0;
+                        $attributeModel = $this->objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute');
+                        foreach ($configurableAttributesIds as $attributeId) {
+                            $attribData = ['attribute_id' => $attributeId, 'product_id' => $productId, 'position' => $position];
+                            $position++;
+                            $attributeModel->setData($attribData)->save();
+                        }
+                        $main_product->setTypeId('configurable');
+                        $main_product->setWebsiteIds(array_keys($websites));
+                        $main_product->getTypeInstance()->setUsedProductAttributeIds(
+                            $configurableAttributesIds,
+                            $main_product
+                        );
+                        $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
+                        $main_product->setAssociatedProductIds($associatedProductIds);// Setting Associated Products
+
+                        // Set Existing Associated Products.
+                        if (!empty($existingAssociatedProductIds)) {
+                            $existingAssociatedProductIds = array_merge(
+                                $existingAssociatedProductIds,
+                                $associatedProductIds
+                            );
+                            $main_product->setAssociatedProductIds($existingAssociatedProductIds);
+                        }
+
+                        $main_product->setCanSaveConfigurableAttributes(true);
+                        if (isset($savedAttributes['info_attribute']) && !empty($savedAttributes['info_attribute'])) {
+                            foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
+                                $infoAttrib = current($infoAttribute);
+                                $infoAttrib = isset($infoAttrib->$defaultLanguage) ? $infoAttrib->$defaultLanguage : '';
+                                $main_product->setData($infoKey, $infoAttrib);
+                            }
+                        }
+
+                        if (isset($formated_data['images']) && !empty($formated_data['images'])) {
+                            $this->importImages($main_product, $formated_data['images']);
+                        }
+                        
+                        $main_product->save();
+                        $productId = $main_product->getId();
+
+                        foreach ($websites as $webKey => $website) {
+                            foreach ($website as $storeKey => $store) {
+                                $storeLang = $store['lang'];
+                                $storeProductName = isset($formated_data['name_i18n']->$storeLang) ? $formated_data['name_i18n']->$storeLang : '';
+                                $storeProductDesc = isset($formated_data['description_i18n']->$storeLang) ? $formated_data['description_i18n']->$storeLang : '';
+
+                                $main_product->setStoreId($storeKey);
+                                $main_product->setName($storeProductName);
+                                $main_product->setDescription($storeProductDesc);
+                                $productResource->saveAttribute($main_product, 'name');
+                                $productResource->saveAttribute($main_product, 'description');
+                            }
+                        }
+
+                        if (isset($savedAttributes['info_attribute']) && !empty($savedAttributes['info_attribute'])) {
+                            foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
+                                foreach ($websites as $webKey => $website) {
+                                    foreach ($website as $storeKey => $store) {
+                                        $storeLang = isset($store['lang']) ? $store['lang'] : $defaultLanguage;
+                                        $infoAttrib = current($infoAttribute);
+                                        $infoAttrib = isset($infoAttrib->$storeLang) ? $infoAttrib->$storeLang : '';
+                                        $main_product->addAttributeUpdate($infoKey, $infoAttrib, $storeKey);
+                                    }
+                                }
+                            }
+                        }
+
+
+                        $data['imported'][] = $productId;
+                            /*code for version 2.1.x*/    
+                            }else{
+                            /*code for version 2.2.x*/
                         $main_product = $this->productFactory->create();
                         $main_product->setSku($formated_data['sku']);
                         $main_product->setName($formated_data['name']);
@@ -459,7 +574,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             $configurableAttributesIds,
                             $main_product
                         );
-                        $this->objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable')->setUsedProductAttributeIds($configurableAttributesIds, $main_product);
                         $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
                         $main_product->setAssociatedProductIds($associatedProductIds);// Setting Associated Products
 
@@ -522,6 +636,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             $attributeModel->setData($attribData)->save();
                         }
                         $data['imported'][] = $productId;
+                            /*code for version 2.2.x*/    
+                        }
                     }
                 } catch (\Exception $e) {
                     $this->logger->info("[PRODUCT_IMPORT][ERROR] " . $e->getMessage());

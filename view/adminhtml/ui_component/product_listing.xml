@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
     <listingToolbar name="listing_top">
-        <filters name="listing_filters">
+        <!-- <filters name="listing_filters">
             <filterSelect name="is_knawat" provider="${ $.parentName }">
                 <settings>
                     <options class="Knawat\Dropshipping\Model\Product\Attribute\Source\Boolean"/>
@@ -9,6 +9,21 @@
                     <label translate="true">Product Source</label>
                     <dataScope>is_knawat</dataScope>
                 </settings>
+            </filterSelect>
+        </filters> -->
+        <filters name="listing_filters">
+            <filterSelect name="is_knawat">
+                <argument name="optionsProvider" xsi:type="configurableObject">
+                    <argument name="class" xsi:type="string">Knawat\Dropshipping\Model\Product\Attribute\Source\Boolean</argument>
+                </argument>
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="provider" xsi:type="string">${ $.parentName }</item>
+                        <item name="dataScope" xsi:type="string">is_knawat</item>
+                        <item name="caption" xsi:type="string" translate="true">All Products</item>
+                        <item name="label" xsi:type="string" translate="true">Product Source</item>
+                    </item>
+                </argument>
             </filterSelect>
         </filters>
     </listingToolbar>
