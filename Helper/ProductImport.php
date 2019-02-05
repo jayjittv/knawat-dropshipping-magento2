@@ -121,6 +121,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
      */
     protected $data;
 
+    /**
+     * @var \Magento\Framework\App\ProductMetadataInterface
+     */
     protected $productMetadata;
 
     /**

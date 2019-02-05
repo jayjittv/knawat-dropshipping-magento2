@@ -1,5 +1,10 @@
 <?php  $connection = $block->getKnawatConnection(); 
-       $importStatus = $block->getImportStatus();     
+       $importStatus = $block->getImportStatus();  
+       if($block->isVersionTwo()){
+        $knawatLabel = 'knawat-label-2';
+       }else{
+        $knawatLabel = 'knawat-label';
+       }  
 ?>
 <div class="admin__scope-old">
     <fieldset class="fieldset admin__fieldset">
@@ -11,7 +16,7 @@
         <form class="form" action="<?php echo $this->getUrl("dropshipping/dropshipping/saveimport") ?>" method="post" name="import_form">
             <input name="form_key" type="hidden" value="<?php /* @escapeNotVerified */ echo $block->getFormKey() ?>" />
             <div class="field knawat-admin-control">
-                <label for="start_stop_import" class="knawat-label">
+                <label for="start_stop_import" class="<?php echo $knawatLabel; ?>">
                     <span class="knawat-admin-label"><strong><?php echo __('Start product import') ?></strong></span>
                 </label>
                 <button type="submit" class="action submit primary input-text" title="<?php echo __('Start Import') ?>" <?php if (!$connection || $importStatus ) {  echo "disabled"; }?>>
@@ -42,14 +47,14 @@
                         $skipped = $importData['skipped'];
                     } ?>
                     <div class="knawat-admin-control">
-                        <label for="start_stop_import" class="knawat-label">
+                        <label for="start_stop_import" class="<?php echo $knawatLabel; ?>">
                             <span class="knawat-admin-label"></span>
                         </label>
                         <span><i><?php echo __("Product import is in-progress already. you can't start import now. Please find current import status below."); ?></i></span>
                     </div>
                     <?php if (isset($imported)) : ?>
                         <div class="knawat-admin-control">
-                        <label for="start_stop_import" class="knawat-label">
+                        <label for="start_stop_import" class="<?php echo $knawatLabel; ?>">
                             <span class="knawat-admin-label"></span>
                         </label>
                         <span><strong><?php echo __("Imported : "); ?></strong></span>
@@ -58,7 +63,7 @@
                     </div>
                     <?php if (isset($updated)) : ?>
                         <div class="knawat-admin-control">
-                        <label for="start_stop_import" class="knawat-label">
+                        <label for="start_stop_import" class="<?php echo $knawatLabel; ?>">
                             <span class="knawat-admin-label"></span>
                         </label>
                         <span><strong><?php echo __("Updated : "); ?></strong></span>
@@ -67,7 +72,7 @@
                     </div>
                     <?php if (isset($skipped)) : ?>
                         <div class="knawat-admin-control">
-                        <label for="start_stop_import" class="knawat-label">
+                        <label for="start_stop_import" class="<?php echo $knawatLabel; ?>">
                             <span class="knawat-admin-label"></span>
                         </label>
                         <span><strong><?php echo __("Skipped : "); ?></strong></span>
@@ -76,7 +81,7 @@
                     </div>
                     <?php if (isset($failed)) : ?>
                         <div class="knawat-admin-control">
-                        <label for="start_stop_import" class="knawat-label">
+                        <label for="start_stop_import" class="<?php echo $knawatLabel; ?>">
                             <span class="knawat-admin-label"></span>
                         </label>
                         <span><strong><?php echo __("Failed : "); ?></strong></span>
@@ -88,7 +93,7 @@
             </div>
             <?php if(!$connection){ ?>
             <div class="field knawat-admin-control">
-                <label for="start_stop_import" class="knawat-label">
+                <label for="start_stop_import" class="<?php echo $knawatLabel; ?>">
                     <span class="knawat-admin-label"></span>
                 </label>
                 <span><?php echo __("You're not connected to ") ?><a href="https://knawat.com/" target="_blank"><?php echo __("knawat.com "); ?></a><?php echo __(", please make a connection for start import."); ?></span>
