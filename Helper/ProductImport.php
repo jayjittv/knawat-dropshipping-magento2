@@ -334,7 +334,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             // update Exising Product Variation
                             $var_product = $this->objectManager->create('\Magento\Catalog\Model\Product')->load($variation['id']);
                             $var_product->setPrice($variation['price']); // price of product
+                            $var_product->setCost($variation['cost']); // cost of product
                             $productResource->saveAttribute($var_product, 'price');
+                            $productResource->saveAttribute($var_product, 'cost');
                             // Update stock
                             $stockItem = $this->stockRegistry->getStockItemBySku($var_product->getSku());
                             $stockItem->setQty($variation['stock_quantity']);
@@ -381,6 +383,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             $var_product->setName($variation['name']);
                             $var_product->setTypeId('simple');
                             $var_product->setPrice($variation['price']);
+                            $var_product->setCost($variation['cost']);
                             $var_product->setStatus(
                                 \Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED
                             );
@@ -779,6 +782,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                     if (isset($variation->sale_price) && is_numeric($variation->sale_price)) {
                         $temp_variant['price'] = $temp_variant['final_price'] = round(floatval($variation->sale_price), 2);
+                    }
+                    if (isset($variation->cost_price) && is_numeric($variation->cost_price)) {
+                        $temp_variant['cost'] = $temp_variant['cost'] = round(floatval($variation->cost_price), 2);
                     }
                     if (isset($variation->market_price) && is_numeric($variation->market_price)) {
                         $temp_variant['regular_price'] = round(floatval($variation->market_price), 2);
