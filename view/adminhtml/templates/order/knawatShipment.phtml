@@ -8,8 +8,8 @@ if(!empty($order)){
         }
 
         ?>
-        <section class="admin__page-section order-addresses">
-            <div class="admin__page-section-title">
+        <section class="admin__page-section knawat-shipping">
+            <div class="admin__page-section-title-knawat">
                 <span class="title"><?= $block->escapeHtml(__('Knawat Shipment & Tracking')) ?></span>
             </div>
             <?php if($order->getShipmentProviderName()) { ?>
@@ -25,7 +25,7 @@ if(!empty($order)){
             <?php } ?>
             <?php if($order->getShipmentTrackingNumber()) { ?>
                 <div class="admin__page-section-content">
-                    <div class="admin__page-section-item order-billing-address">
+                    <div class="admin__page-section-item">
                         <?php /* Billing Address */ ?>
                         <div class="admin__page-section-item-title">
                             <span class="title"><?= $block->escapeHtml(__('Shipment Tracking Number :')) ?></span>
