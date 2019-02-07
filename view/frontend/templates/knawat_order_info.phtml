@@ -1,0 +1,46 @@
+<?php $order = $block->getOrder();
+	if(!empty($order)){
+		if($order->getKnawatOrderStatus()){
+			$knawatStatus = $order->getKnawatOrderStatus(); 
+		}
+		if($order->getShipmentProviderName()){
+			$knawatShipmentProvider = $order->getShipmentProviderName(); 
+		}
+		if($order->getShipmentTrackingNumber()){
+			$knawatShipmentTracking = $order->getShipmentTrackingNumber(); 
+		}
+		if((isset($knawatStatus)) || (isset($knawatShipmentProvider)) || (isset($knawatShipmentTracking)) ){
+			 if((isset($knawatShipmentProvider)) && (isset($knawatShipmentTracking))) {
+            	$trackLink = $block->getTracking($knawatShipmentProvider,$knawatShipmentTracking);
+        	}
+
+ ?>
+ <div class="block block-order-details-view">
+    <div class="block-title">
+        <strong><?= /* @escapeNotVerified */ __('Knawat Order Information') ?></strong>
+    </div>
+    <?php if(isset($knawatStatus)) { ?>
+        <div class="box box-order-shipping-address">
+     	  <strong class="box-title"><span><?= /* @escapeNotVerified */ __('Knawat Order Status : ') ?></span></strong>
+     	  <span><?php echo $knawatStatus; ?></span>
+        </div>
+     <?php } ?>
+     <?php if(isset($knawatShipmentProvider)){ ?>
+        <div class="box box-order-shipping-address">
+     	  <strong class="box-title"><span><?= /* @escapeNotVerified */ __('Shipment Provider Name : ') ?></span></strong>
+     	  <span><?php echo $knawatShipmentProvider; ?></span>
+        </div>
+     <?php } ?>
+     <?php if(isset($knawatShipmentTracking)){ ?>
+        <div class="box box-order-shipping-address">
+     	  <strong class="box-title"><span><?= /* @escapeNotVerified */ __('Shipment Tracking Number: ') ?></span></strong>
+     	  <span><?php echo $knawatShipmentTracking; ?></span>
+     	  <?php if(isset($trackLink)){ ?>
+             <span class="actions"><a href="<?php echo $trackLink; ?>" target="_blank"><?= $block->escapeHtml(__('Track')) ?></a></span>
+          <?php } ?>
+        </div>
+     <?php } ?>
+</div>
+<?php
+	}
+ } ?>
