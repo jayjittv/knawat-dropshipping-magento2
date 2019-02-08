@@ -449,13 +449,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         );
                         $main_product->setData('is_knawat', 1);
                         $main_product->setCategoryIds([$defaultCategoryId]);
-                        $main_product->setStockData(
-                            [
-                                'use_config_manage_stock' => 0,
-                                'manage_stock' => 1,
-                                'is_in_stock' => ($totalQty > 0) ? 1 : 0
-                            ]
-                        );
 
                         $configurableAttributesIds = [];
                         foreach ($savedAttributes as $savedAttribute) {
@@ -485,7 +478,13 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         );
                         $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
                         $main_product->setAssociatedProductIds($associatedProductIds);// Setting Associated Products
-
+                        $main_product->setStockData(
+                            [
+                                 'use_config_manage_stock' => 0,
+-                                'manage_stock' => 1,
+-                                'is_in_stock' => ($totalQty > 0) ? 1 : 0
+                            ]
+                        );
                         // Set Existing Associated Products.
                         if (!empty($existingAssociatedProductIds)) {
                             $existingAssociatedProductIds = array_merge(
