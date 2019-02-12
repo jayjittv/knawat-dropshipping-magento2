@@ -1,5 +1,4 @@
 <?php
-
 namespace Knawat\Dropshipping\Block;
 
 use Magento\Sales\Model\Order\Address;

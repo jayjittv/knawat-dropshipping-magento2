@@ -7,4 +7,6 @@
 			</argument>
 		</arguments>
 	</virtualType>
+	<preference for="Magento\Sales\Block\Order\Item\Renderer\DefaultRenderer" type="Knawat\Dropshipping\Block\Item\Renderer"/>
+	<preference for="Magento\Sales\Block\Order\Items" type="Knawat\Dropshipping\Block\Order\Items"/>
 </config>

@@ -6,7 +6,12 @@
     <update handle="sales_order_info_links"/>
     <body>
         <referenceContainer name="content">
-            <block class="Knawat\Dropshipping\Block\Knawatorderinformation" name="test_file" template="Knawat_Dropshipping::knawat_order_info.phtml" after="sales.order.info"/>
+            <block class="Knawat\Dropshipping\Block\Knawatorderinformation" name="knawat_order_information" template="Knawat_Dropshipping::knawat_order_info.phtml" after="sales.order.info"/>
+            <referenceBlock name="order_items">
+            	<action method="setTemplate">
+       			 <argument name="template" xsi:type="string">Knawat_Dropshipping::order/items.phtml</argument>
+   			 </action>
+            </referenceBlock>
         </referenceContainer>
     </body>
 </page>

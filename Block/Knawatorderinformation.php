@@ -17,15 +17,29 @@ class Knawatorderinformation extends \Magento\Framework\View\Element\Template
      */
     protected $coreRegistry = null;
 
+    protected $productFactory;
+
+    private $itemCollectionFactory;
+
+    /**
+     * @var \Magento\Sales\Model\ResourceModel\Order\Item\Collection|null
+     */
+    private $itemCollection;
+
     /**
      * @param TemplateContext $context
      * @param Registry $registry
      */
     public function __construct(
         TemplateContext $context,
-        Registry $registry
+        Registry $registry,
+        \Magento\Sales\Model\ResourceModel\Order\Item\CollectionFactory $itemCollectionFactory = null,
+        \Magento\Catalog\Model\ProductFactory $productFactory
     ) {
         $this->coreRegistry = $registry;
+        $this->itemCollectionFactory = $itemCollectionFactory ?: \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Magento\Sales\Model\ResourceModel\Order\Item\CollectionFactory::class);
+        $this->productFactory = $productFactory;
         parent::__construct($context);
     }
 
@@ -63,6 +77,27 @@ class Knawatorderinformation extends \Magento\Framework\View\Element\Template
         }
 
         return $trackingLink;
+    }
+
+    public function getCheckKnawatItems(){
+        $this->itemCollection = $this->itemCollectionFactory->create();
+        $this->itemCollection->setOrderFilter($this->getOrder());
+        $this->itemCollection->filterByParent(null);
+        $itemDetails = $this->itemCollection->getItems();
+        $itemCount = count($itemDetails);
+        $i = 0;
+        foreach ($itemDetails as  $value) {
+                $product = $this->productFactory->create();
+                $productData = $product->load($product->getIdBySku($value->getSku()));
+                if($productData->getIsKnawat()){
+                     $i++;
+                }
+        }
+        if($itemCount == $i){
+           return true;
+        }else{
+            return false;
+        }
     }
 
 }
