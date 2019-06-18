@@ -502,7 +502,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 $main_product->setData($infoKey, $infoAttrib);
                             }
                         }
-
+                        
                         if (isset($formated_data['images']) && !empty($formated_data['images'])) {
                             $this->importImages($main_product, $formated_data['images']);
                         }
@@ -1218,7 +1218,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     // Check size of file.
                     $size = @filesize($newFileName);
                     if ($size > 0) {
-                        $product->addImageToMediaGallery($newFileName, $imageType, true, false);
+                        $product->addImageToMediaGallery($newFileName, $imageType, false, false);
                     }
                 }
             } catch (\Exception $e) {
