@@ -43,7 +43,7 @@ class Saveimport extends \Magento\Backend\App\Action
             $this->commonHelper->stopImport();
             $this->messageManager->addSuccessMessage(__('Knawat Product import has been stopped successfully.'));
         } else {
-            $this->commonHelper->runImport();
+            $this->commonHelper->runImport('manual');
             $this->messageManager->addSuccessMessage(__('Knawat Product import has been started successfully.'));
         }
 
