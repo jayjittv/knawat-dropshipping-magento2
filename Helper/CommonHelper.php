@@ -128,7 +128,7 @@ class CommonHelper extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return bool
      */
-    public function runImport()
+    public function runImport($is_manual='')
     {
         $importStatus = $this->backgroundHelper->isQueueEmpty();
         if (!$importStatus) {
@@ -144,6 +144,10 @@ class CommonHelper extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 $data = [];
                 $data['limit'] = $product_batch_size;
+                if(!empty($is_manual) && $is_manual == 'manual'){
+                    $data['is_manual'] = 'true';
+                }
+                
                 $this->backgroundHelper->pushToQueue($data)->dispatch(true);
             } catch (\Exception $e) {
                 // ignore.
