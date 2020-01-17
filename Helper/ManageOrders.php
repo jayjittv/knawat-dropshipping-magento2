@@ -310,7 +310,9 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                 /*get billing address*/
                 $newOrder['billing']['first_name'] = $order->getBillingAddress()->getFirstname();
                 $newOrder['billing']['last_name'] = $order->getBillingAddress()->getLastname();
-                $newOrder['billing']['company'] = $order->getBillingAddress()->getCompany();
+                if($order->getBillingAddress()->getCompany()){
+                    $newOrder['billing']['company'] = $order->getBillingAddress()->getCompany();
+                }
 
                 $billingAddress = $order->getBillingAddress()->getStreet();
                 if (array_key_exists(0, $billingAddress)) {
@@ -325,14 +327,20 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 $newOrder['billing']['city'] = $order->getBillingAddress()->getCity();
                 $newOrder['billing']['state'] = $order->getBillingAddress()->getRegion();
-                $newOrder['billing']['postcode'] = $order->getBillingAddress()->getPostcode();
+                if($order->getBillingAddress()->getPostcode()){
+                    $newOrder['billing']['postcode'] = $order->getBillingAddress()->getPostcode();
+                }
                 $newOrder['billing']['country'] = $order->getBillingAddress()->getCountryId();
                 $newOrder['billing']['email'] = $order->getBillingAddress()->getEmail();
-                $newOrder['billing']['phone'] = $order->getBillingAddress()->getTelephone();
+                if($order->getBillingAddress()->getTelephone()){
+                    $newOrder['billing']['phone'] = $order->getBillingAddress()->getTelephone();
+                }
                 /*get shipping address*/
                 $newOrder['shipping']['first_name'] = $order->getBillingAddress()->getFirstname();
                 $newOrder['shipping']['last_name'] = $order->getShippingAddress()->getLastname();
-                $newOrder['shipping']['company'] = $order->getShippingAddress()->getCompany();
+                if($order->getShippingAddress()->getCompany()){
+                    $newOrder['shipping']['company'] = $order->getShippingAddress()->getCompany();
+                }
                 $address = $order->getShippingAddress()->getStreet();
                 if (array_key_exists(0, $address)) {
                     $newOrder['shipping']['address_1'] = $address[0];
@@ -347,10 +355,14 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
 
                 $newOrder['shipping']['city'] = $order->getShippingAddress()->getCity();
                 $newOrder['shipping']['state'] = $order->getShippingAddress()->getRegion();
-                $newOrder['shipping']['postcode'] = $order->getShippingAddress()->getPostcode();
+                if($order->getShippingAddress()->getPostcode()){
+                    $newOrder['shipping']['postcode'] = $order->getShippingAddress()->getPostcode();
+                }
                 $newOrder['shipping']['country'] = $order->getShippingAddress()->getCountryId();
                 $newOrder['shipping']['email'] = $order->getShippingAddress()->getEmail();
-                $newOrder['shipping']['phone'] = $order->getShippingAddress()->getTelephone();
+                if($order->getShippingAddress()->getTelephone()){
+                    $newOrder['shipping']['phone'] = $order->getShippingAddress()->getTelephone();
+                }
                 $method = $order->getPayment()->getMethod();
                 $additionalInformation = $order->getPayment()->getAdditionalInformation();
                 if (($method != '') && array_key_exists('method_title', $additionalInformation)) {
