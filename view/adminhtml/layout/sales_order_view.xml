@@ -9,7 +9,7 @@
     <body>
        <referenceContainer name="left">
          <referenceContainer name="payment_additional_info">
-            <block class="Knawat\Dropshipping\Block\Adminhtml\Orderview" name="knawat.sales.order.view"  template="Knawat_Dropshipping::order/knawatShipment.phtml" />
+            <block class="Knawat\Dropshipping\Block\Adminhtml\OrderView" name="knawat.sales.order.view"  template="Knawat_Dropshipping::order/knawatShipment.phtml" />
         </referenceContainer>
     </referenceContainer>
 </body>
