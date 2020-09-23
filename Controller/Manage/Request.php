@@ -46,7 +46,7 @@ class Request extends Action
     {
         $knawatParams = $this->getRequest()->getParam("knawat_key");
         $knawatKey = $this->generalHelper->getConfigDirect('knawt_security', true);
-        if (md5($knawatKey) === $knawatParams) {
+        if (hash('sha256', $knawatKey) === $knawatParams) {
             $this->backgroundImport->maybeHandle();
         }
     }

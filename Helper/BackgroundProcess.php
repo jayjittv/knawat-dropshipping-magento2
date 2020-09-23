@@ -153,7 +153,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
             $knawatKey = $this->generalHelper->generateRandomString();
             $this->setConfig(self::PATH_KNAWAT_DEFAULT."knawt_security", $knawatKey);
         }
-        $encryptedKey = md5($knawatKey);
+        $encryptedKey = hash('sha256', $knawatKey);
         if ($start) {
             $this->setConfig($this->identifier.'_start_time', time());
         }
