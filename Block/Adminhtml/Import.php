@@ -2,6 +2,8 @@
 
 namespace Knawat\Dropshipping\Block\Adminhtml;
 
+use Magento\Framework\Serialize\SerializerInterface;
+
 /**
  * Class Import
  * @package Knawat\Dropshipping\Block\Adminhtml
@@ -35,6 +37,11 @@ class Import extends \Magento\Backend\Block\Template
     protected $productMetadata;
 
     /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * Settings constructor.
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -44,12 +51,14 @@ class Import extends \Magento\Backend\Block\Template
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Config\Model\ResourceModel\Config $configModel,
         \Knawat\Dropshipping\Helper\ManageConfig $confighelper,
-        \Magento\Framework\App\ProductMetadataInterface $productMetadata
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata,
+        SerializerInterface $serializer
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->configModel = $configModel;
         $this->confighelper = $confighelper;
         $this->productMetadata = $productMetadata;
+        $this->serializer = $serializer;
         parent::__construct($context);
     }
 
@@ -78,7 +87,7 @@ class Import extends \Magento\Backend\Block\Template
         }
 
         if (!empty($importData)) {
-            $batch = @unserialize($importData);
+            $batch = $this->serializer->unserialize($importData);
             return $batch;
         }
         return false;
