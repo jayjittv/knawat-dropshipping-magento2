@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bd3fbf1f1270885049da70d449432a60",
+    "content-hash": "d7d3f021d31ce8a44a4056c963e65bea",
     "packages": [
         {
             "name": "knawat/knawat-php-sdk",
@@ -60,7 +60,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "7.0.0|7.0.1|7.0.2|7.0.3|7.0.4|~7.0.6|~7.1|~7.2"
+        "php": ">=7.0.0"
     },
     "platform-dev": []
 }
