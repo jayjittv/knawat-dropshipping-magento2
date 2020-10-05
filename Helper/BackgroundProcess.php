@@ -2,6 +2,8 @@
 
 namespace Knawat\Dropshipping\Helper;
 
+use Magento\Framework\Serialize\SerializerInterface;
+
 /**
  * Class BackgroundProcess
  *
@@ -67,6 +69,11 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
     protected $generalHelper;
 
     /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * ManageConfig constructor.
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Knawat\MPFactory $mpFactory
@@ -82,7 +89,8 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Framework\HTTP\Client\Curl $curl,
         \Magento\Framework\App\CacheInterface $cache,
         \Magento\Config\Model\ResourceModel\Config $configModel,
-        \Knawat\Dropshipping\Helper\General $generalHelper
+        \Knawat\Dropshipping\Helper\General $generalHelper,
+        SerializerInterface $serializer
     ) {
         parent::__construct($context);
         $this->scopeConfig = $scopeConfig;
@@ -94,6 +102,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
         $this->generalHelper = $generalHelper;
 
         $this->identifier = self::PATH_KNAWAT_DEFAULT.$this->action;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -153,7 +162,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
             $knawatKey = $this->generalHelper->generateRandomString();
             $this->setConfig(self::PATH_KNAWAT_DEFAULT."knawt_security", $knawatKey);
         }
-        $encryptedKey = md5($knawatKey);
+        $encryptedKey = hash('sha256', $knawatKey);
         if ($start) {
             $this->setConfig($this->identifier.'_start_time', time());
         }
@@ -223,7 +232,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
     public function pushToQueue($data)
     {
         if (!empty($data)) {
-            $this->setConfig($this->identifier, serialize($data));
+            $this->setConfig($this->identifier, $this->serializer->serialize($data));
         }
         return $this;
     }
@@ -252,7 +261,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
 
             // Update or delete current batch.
             if (! empty($batch)) {
-                $this->setConfig($this->identifier, serialize($batch));
+                $this->setConfig($this->identifier, $this->serializer->serialize($batch));
             } else {
                 $this->deleteConfig($this->identifier);
             }
@@ -284,7 +293,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         if (!empty($importData)) {
-            $batch = @unserialize($importData);
+            $batch = $this->serializer->unserialize($importData);
             return $batch;
         }
         return false;

@@ -67,7 +67,7 @@ class SingleProductUpdate extends \Magento\Framework\App\Helper\AbstractHelper
             $knawatKey = $this->generalHelper->generateRandomString();
             $this->generalHelper->setConfig(self::PATH_KNAWAT_DEFAULT."knawt_security", $knawatKey);
         }
-        $encryptedKey = md5($knawatKey);
+        $encryptedKey = hash('sha256', $knawatKey);
         try {
             $this->curl->setTimeout(1);
             $url = $this->storeManager->getStore()->getBaseUrl()."dropshipping/manage/updateproduct?knawat_key=$encryptedKey&sku=$sku";

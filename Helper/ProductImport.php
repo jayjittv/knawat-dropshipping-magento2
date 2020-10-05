@@ -235,7 +235,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         switch ($this->importType) {
             case 'full':
                 $lastUpdated = $this->generalHelper->getConfigDirect('knawat_last_imported', true);
-                if (empty($lastUpdated)) {
+                if (empty($lastUpdated) || (isset($this->params['is_manual']) && $this->params['is_manual'] == 'true')) {
                     $lastUpdated = 0;
                 }
                 $this->data = $mp->getProducts($this->params['limit'], $this->params['page'], $lastUpdated);
@@ -502,7 +502,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 $main_product->setData($infoKey, $infoAttrib);
                             }
                         }
-
+                        
                         if (isset($formated_data['images']) && !empty($formated_data['images'])) {
                             $this->importImages($main_product, $formated_data['images']);
                         }
@@ -1130,7 +1130,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         );
         $validatorAttrCode = new \Zend_Validate_Regex(['pattern' => '/^[a-z][a-z_0-9]{0,24}[a-z0-9]$/']);
         if (!$validatorAttrCode->isValid($code)) {
-            $code = ($code ?: substr(md5(time()), 0, 8));
+            $code = ($code ?: substr(hash('sha256', time()), 0, 8));
         }
         return $code."_knawat";
     }
@@ -1154,7 +1154,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         );
         $validatorAttrValue = new \Zend_Validate_Regex(['pattern' => '/^[a-z_0-9]+$/']);
         if (!$validatorAttrValue->isValid($valueKey)) {
-            $valueKey = 'att_val_'.($valueKey ?: substr(md5(time()), 0, 8));
+            $valueKey = 'att_val_'.($valueKey ?: substr(hash('sha256', time()), 0, 8));
         }
         return $valueKey;
     }
@@ -1218,7 +1218,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     // Check size of file.
                     $size = @filesize($newFileName);
                     if ($size > 0) {
-                        $product->addImageToMediaGallery($newFileName, $imageType, true, false);
+                        $product->addImageToMediaGallery($newFileName, $imageType, false, false);
                     }
                 }
             } catch (\Exception $e) {
