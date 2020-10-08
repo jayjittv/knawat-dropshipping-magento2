@@ -2,8 +2,6 @@
 
 namespace Knawat\Dropshipping\Helper;
 
-use Magento\Framework\Serialize\SerializerInterface;
-
 /**
  * Class BackgroundProcess
  *
@@ -90,7 +88,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Framework\App\CacheInterface $cache,
         \Magento\Config\Model\ResourceModel\Config $configModel,
         \Knawat\Dropshipping\Helper\General $generalHelper,
-        SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         parent::__construct($context);
         $this->scopeConfig = $scopeConfig;

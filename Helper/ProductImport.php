@@ -1192,7 +1192,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
         foreach ($imageUrls as $index => $imageUrl) {
             // File Path for download image.
-            $newFileName = $tmpDir . DIRECTORY_SEPARATOR . mt_rand() . baseName($imageUrl);
+            $newFileName = $tmpDir . DIRECTORY_SEPARATOR . random_int() . baseName($imageUrl);
             $newFileName = strtok($newFileName, "?");
             $imageType = null;
             if ($index == 0) {
@@ -1216,7 +1216,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 // Check file exists or not.
                 if (file_exists($newFileName)) {
                     // Check size of file.
-                    $size = @filesize($newFileName);
+                    $size = filesize($newFileName);
                     if ($size > 0) {
                         $product->addImageToMediaGallery($newFileName, $imageType, false, false);
                     }

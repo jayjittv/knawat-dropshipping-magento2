@@ -1,6 +1,5 @@
 <?php
 namespace Knawat\Dropshipping\Helper;
-use Magento\Framework\Serialize\SerializerInterface;
 
 /**
  * Class BackgroundImport
@@ -44,7 +43,7 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
         \Magento\Config\Model\ResourceModel\Config $configModel,
         \Knawat\Dropshipping\Helper\ProductImport $importer,
         \Knawat\Dropshipping\Helper\General $generalHelper,
-        SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         parent::__construct(
             $context,

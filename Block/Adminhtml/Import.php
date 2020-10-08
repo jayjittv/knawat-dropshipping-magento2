@@ -2,8 +2,6 @@
 
 namespace Knawat\Dropshipping\Block\Adminhtml;
 
-use Magento\Framework\Serialize\SerializerInterface;
-
 /**
  * Class Import
  * @package Knawat\Dropshipping\Block\Adminhtml
@@ -52,7 +50,7 @@ class Import extends \Magento\Backend\Block\Template
         \Magento\Config\Model\ResourceModel\Config $configModel,
         \Knawat\Dropshipping\Helper\ManageConfig $confighelper,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata,
-        SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->configModel = $configModel;
