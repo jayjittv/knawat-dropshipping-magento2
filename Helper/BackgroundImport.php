@@ -42,7 +42,8 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
         \Magento\Framework\App\CacheInterface $cache,
         \Magento\Config\Model\ResourceModel\Config $configModel,
         \Knawat\Dropshipping\Helper\ProductImport $importer,
-        \Knawat\Dropshipping\Helper\General $generalHelper
+        \Knawat\Dropshipping\Helper\General $generalHelper,
+        \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         parent::__construct(
             $context,
@@ -52,7 +53,8 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
             $curl,
             $cache,
             $configModel,
-            $generalHelper
+            $generalHelper,
+            $serializer
         );
         $this->importer = $importer;
         $this->generalHelper = $generalHelper;

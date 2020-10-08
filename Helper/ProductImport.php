@@ -1130,7 +1130,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         );
         $validatorAttrCode = new \Zend_Validate_Regex(['pattern' => '/^[a-z][a-z_0-9]{0,24}[a-z0-9]$/']);
         if (!$validatorAttrCode->isValid($code)) {
-            $code = ($code ?: substr(md5(time()), 0, 8));
+            $code = ($code ?: substr(hash('sha256', time()), 0, 8));
         }
         return $code."_knawat";
     }
@@ -1154,7 +1154,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         );
         $validatorAttrValue = new \Zend_Validate_Regex(['pattern' => '/^[a-z_0-9]+$/']);
         if (!$validatorAttrValue->isValid($valueKey)) {
-            $valueKey = 'att_val_'.($valueKey ?: substr(md5(time()), 0, 8));
+            $valueKey = 'att_val_'.($valueKey ?: substr(hash('sha256', time()), 0, 8));
         }
         return $valueKey;
     }
@@ -1192,7 +1192,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
         foreach ($imageUrls as $index => $imageUrl) {
             // File Path for download image.
-            $newFileName = $tmpDir . DIRECTORY_SEPARATOR . mt_rand() . baseName($imageUrl);
+            $newFileName = $tmpDir . DIRECTORY_SEPARATOR . random_int() . baseName($imageUrl);
             $newFileName = strtok($newFileName, "?");
             $imageType = null;
             if ($index == 0) {
@@ -1216,7 +1216,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 // Check file exists or not.
                 if (file_exists($newFileName)) {
                     // Check size of file.
-                    $size = @filesize($newFileName);
+                    $size = filesize($newFileName);
                     if ($size > 0) {
                         $product->addImageToMediaGallery($newFileName, $imageType, false, false);
                     }
