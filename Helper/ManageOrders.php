@@ -497,8 +497,12 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
             )->create();
         $orders = $this->orderRepository->getList($searchCriteria);
         $failedOrders = [];
+        $blacklisted_state = [ 'canceled', 'holded' ];
         foreach ($orders->getItems() as $order) {
-            $failedOrders[] = $order->getId();
+            $orderState = $order->getState();
+            if (!in_array($orderState, $blacklisted_state)) {
+                $failedOrders[] = $order->getId();
+            }
         }
         return $failedOrders;
     }
