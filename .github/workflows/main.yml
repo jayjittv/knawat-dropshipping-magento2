@@ -16,7 +16,7 @@ jobs:
         run: echo '::set-output name=NAME::knawat-module-dropshipping-${{ github.ref }}' | sed 's/refs\/tags\/v.//g'
       - name: Bump a version
         run: |
-          sed -i 's/version": ".*"/version": "${{ github.ref }}"/g' composer.json
+          sed -i 's/version": ".*"/version": "${{ steps.release_name.outputs.NAME }}"/g' composer.json
       - name: Commit a version
         uses: EndBug/add-and-commit@v5
         with:
