@@ -24,6 +24,7 @@ jobs:
           author_email: bot@github.com
           message: "bump a version"
           add: "composer.json"
+          branch: "master"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build project
