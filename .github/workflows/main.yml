@@ -14,7 +14,18 @@ jobs:
       - name: Release name
         id: release_name
         run: echo '::set-output name=NAME::knawat-module-dropshipping-${{ github.ref }}' | sed 's/refs\/tags\/v.//g'
-      - name: Build project # This would actually build your project, using zip for an example artifact
+      - name: Bump a version
+        run: sed -i -e 's/version": ".*"/version": "${{ github.ref }}"/g' composer.json
+      - name: Commit a version
+        uses: EndBug/add-and-commit@v5
+        with:
+          author_name: GitHub Actions
+          author_email: bot@github.com
+          message: "bump a version"
+          add: "composer.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build project
         run: |
           zip -r ${{ steps.release_name.outputs.NAME }}.zip ./ -x '.git/*' -x '.gitignore' -x 'vendor/*' -x '.github/*' -x '.vscode/*'
       - name: Upload Release Asset
