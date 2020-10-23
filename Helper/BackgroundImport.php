@@ -104,12 +104,9 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
 
             if (!isset($params['force_stopped'])) {
                 // update option on import finish.
-                $startTime = $this->generalHelper->getConfigDirect($identifier.'_start_time');
-                if (empty($startTime)) {
-                    $startTime = time();
-                }
+                $lastUpdateTime = round(microtime(true) * 1000);
                 $lastImportPath = parent::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
-                $this->setConfig($lastImportPath, $startTime);
+                $this->setConfig($lastImportPath, $lastUpdateTime);
             }
 
             // Logs import data

@@ -235,9 +235,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         switch ($this->importType) {
             case 'full':
                 $lastUpdated = $this->generalHelper->getConfigDirect('knawat_last_imported', true);
-                 if($lastUpdated){
-                    $lastUpdated = $lastUpdated * 1000;
-                }
                 if (empty($lastUpdated) || (isset($this->params['is_manual']) && $this->params['is_manual'] == 'true')) {
                     $lastUpdated = 0;
                 }
