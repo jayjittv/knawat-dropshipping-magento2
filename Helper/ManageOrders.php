@@ -381,6 +381,16 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                 $protectCode =  $order->getProtectCode();
                 $protectCodeParam = base64_encode($protectCode);
                 $newOrder['invoice_url'] = $url.$orderIdLabel."-".$orderIdParam."-".$protectCodeLabel."-".$protectCodeParam;
+                /*history note*/
+                $orderCommentHostory=$order->getStatusHistoryCollection();
+                $orderComment = [];
+                foreach ($order->getStatusHistoryCollection() as $status) {
+                    if ($status->getComment()) {
+                        $orderComment[] = $status->getComment();
+                    }
+                }
+                $newOrder['notes'] = implode(" , ",$orderComment);
+                /*history note*/
                 $newOrder['billing'] = (object) $newOrder['billing'];
                 $newOrder['shipping'] = (object) $newOrder['shipping'];
                 $newOrder = (object) $newOrder;
