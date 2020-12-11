@@ -29,6 +29,11 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
     protected $cache;
 
     /**
+     * @var \Magento\Framework\Stdlib\DateTime\TimezoneInterface
+     */
+    protected $timezone;
+
+    /**
      * BackgroundImport constructor.
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Knawat\Dropshipping\Helper\ProductImport $importer
@@ -43,7 +48,8 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
         \Magento\Config\Model\ResourceModel\Config $configModel,
         \Knawat\Dropshipping\Helper\ProductImport $importer,
         \Knawat\Dropshipping\Helper\General $generalHelper,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezone
     ) {
         parent::__construct(
             $context,
@@ -59,6 +65,7 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
         $this->importer = $importer;
         $this->generalHelper = $generalHelper;
         $this->cache = $cache;
+        $this->timezone = $timezone;
     }
 
     /**
@@ -93,7 +100,27 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
             }
             $this->deleteConfig($stopImportPath);
         }
-
+        if($params['products_total']){
+             $lastImportedCount = parent::PATH_KNAWAT_DEFAULT.'knawat_last_imported_count';
+            $this->setConfig($lastImportedCount, $params['products_total']);
+        }
+        if($params['last_updated']){
+            $date = $params['last_updated'];
+            if (strpos($date, 'T') !== false) {
+                $date = str_replace('T', ' ', $date);
+            }
+            if (strpos($date, 'Z') !== false) {
+                $date = str_replace('Z', '', $date);
+            }
+            $date = $this->timezone->date(new \DateTime($date))->format('Y-m-d H:i:s.u');
+            $useconds = $this->timezone->date(new \DateTime($date))->format('u');
+            $timeStamp = strtotime($date);
+            $ts_micro = (float) ($timeStamp . '.' . $useconds);
+            $ts_mili = (float) ($ts_micro * 1000);
+            $lastUpdateTime = round($ts_mili);
+            $lastImportPath = parent::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
+            $this->setConfig($lastImportPath, $lastUpdateTime);
+        }
         if ($params['is_complete']) {
             // Send success.
             $item = $params;
@@ -101,20 +128,8 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
             $item['failed']   += count($results['failed']);
             $item['updated']  += count($results['updated']);
             $item['skipped']  += count($results['skipped']);
-
-            if (!isset($params['force_stopped'])) {
-                // update option on import finish.
-                $startTime = $this->generalHelper->getConfigDirect($identifier.'_start_time');
-                if (empty($startTime)) {
-                    $startTime = time();
-                }
-                $lastImportPath = parent::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
-                $this->setConfig($lastImportPath, $startTime);
-            }
-
             // Logs import data
             $logger->info("[IMPORT_STATS_FINAL]" . print_r($item, true));
-
             // Return false to complete background import.
             return false;
         } else {
