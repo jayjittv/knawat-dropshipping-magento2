@@ -80,11 +80,8 @@ class Items extends \Magento\Sales\Block\Order\Items
                 $i++;
             }
         }
-        if (($itemCount != $i) && ($i > 0)) {
-            return true;
-        } else {
-            return false;
-        }
+
+        return ($itemCount != $i) && ($i > 0);
     }
     
     /**

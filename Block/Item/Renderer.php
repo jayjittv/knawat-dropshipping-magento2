@@ -130,11 +130,11 @@ class Renderer extends DefaultRenderer
         $itemCount = count($itemDetails);
         $i = 0;
         foreach ($itemDetails as  $value) {
-                $product = $this->productFactory->create();
-                $productData = $product->load($product->getIdBySku($value->getSku()));
-                if ($productData->getIsKnawat()) {
-                        $i++;
-                }
+            $product = $this->productFactory->create();
+            $productData = $product->load($product->getIdBySku($value->getSku()));
+            if ($productData->getIsKnawat()) {
+                $i++;
+            }
         }
         
         return ($itemCount != $i) && ($i > 0);
