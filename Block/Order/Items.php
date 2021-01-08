@@ -59,14 +59,14 @@ class Items extends \Magento\Sales\Block\Order\Items
         $this->productFactory = $productFactory;
         $this->itemCollectionFactory = $itemCollectionFactory ?: \Magento\Framework\App\ObjectManager::getInstance()
             ->get(\Magento\Sales\Model\ResourceModel\Order\Item\CollectionFactory::class);
-        parent::__construct($context,$registry, $data,$itemCollectionFactory);
+        parent::__construct($context, $registry, $data, $itemCollectionFactory);
     }
 
     /**
      * Check Items for Knawat
      *
      */
-    public function getCheckKnawatItems(){
+    public function getCheckKnawatItems() {
         $this->itemCollection = $this->itemCollectionFactory->create();
         $this->itemCollection->setOrderFilter($this->getOrder());
         $this->itemCollection->filterByParent(null);
@@ -74,15 +74,15 @@ class Items extends \Magento\Sales\Block\Order\Items
         $itemCount = count($itemDetails);
         $i = 0;
         foreach ($itemDetails as  $value) {
-                $product = $this->productFactory->create();
-                $productData = $product->load($product->getIdBySku($value->getSku()));
-                if($productData->getIsKnawat()){
-                        $i++;
-                }
+            $product = $this->productFactory->create();
+            $productData = $product->load($product->getIdBySku($value->getSku()));
+            if ($productData->getIsKnawat()) {
+                $i++;
+            }
         }
-        if(($itemCount != $i) && ($i > 0)){
+        if (($itemCount != $i) && ($i > 0)) {
             return true;
-        } else{
+        } else {
             return false;
         }
     }
@@ -91,7 +91,7 @@ class Items extends \Magento\Sales\Block\Order\Items
      * Check Page is sales order view 
      *
      */
-    public function getSalesController(){
+    public function getSalesController() {
         $moduleName = $this->request->getModuleName();
         $controller = $this->request->getControllerName();
         $action     = $this->request->getActionName();

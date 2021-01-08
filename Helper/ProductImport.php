@@ -477,7 +477,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             $main_product
                         );
                         $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
-                        $main_product->setAssociatedProductIds($associatedProductIds);// Setting Associated Products
+                        $main_product->setAssociatedProductIds($associatedProductIds); // Setting Associated Products
                         $main_product->setStockData(
                             [
                                     'use_config_manage_stock' => 0,

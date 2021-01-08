@@ -85,27 +85,18 @@ class Import extends \Magento\Backend\Block\Template
         }
 
         if (!empty($importData)) {
-            $batch = $this->serializer->unserialize($importData);
-            return $batch;
+            return $this->serializer->unserialize($importData);
         }
         return false;
     }
 
-    public function getKnawatConnection(){
-            if($this->confighelper->getToken()){
-            return true;
-            } else{
-            return false;
-            }
+    public function getKnawatConnection() {
+        return !!$this->confighelper->getToken();
     }
 
-    public function isVersionTwo(){
+    public function isVersionTwo() {
         $version = $this->productMetadata->getVersion();
-        $versionCompare = version_compare($version,  "2.2");
-        if($versionCompare == -1){
-            return true;
-            } else{
-                return false;
-        }
+        $versionCompare = version_compare($version, "2.2");
+        return $versionCompare == -1;
     }
 }
