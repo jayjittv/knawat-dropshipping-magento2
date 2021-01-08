@@ -77,11 +77,11 @@ class Items extends \Magento\Sales\Block\Order\Items
                 $product = $this->productFactory->create();
                 $productData = $product->load($product->getIdBySku($value->getSku()));
                 if($productData->getIsKnawat()){
-                     $i++;
+                        $i++;
                 }
         }
         if(($itemCount != $i) && ($i > 0)){
-           return true;
+            return true;
         } else{
             return false;
         }

@@ -92,11 +92,11 @@ class Import extends \Magento\Backend\Block\Template
     }
 
     public function getKnawatConnection(){
-         if($this->confighelper->getToken()){
+            if($this->confighelper->getToken()){
             return true;
-         } else{
+            } else{
             return false;
-         }
+            }
     }
 
     public function isVersionTwo(){

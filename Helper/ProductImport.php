@@ -206,10 +206,10 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         $default_args = [
             // 'import_id'         => 0,  // Import_ID
             'limit'             => 25, // Limit for Fetch Products
-            'page'              => 1,  // Page Number
+            'page'              => 1, // Page Number
             'product_index'     => -1, // product index needed incase of memory issuee or timeout
             // 'force_update'      => false, // Whether to force update existing items.
-            'prevent_timeouts'  => true,  // Check memory and time usage and abort if reaching limit.
+            'prevent_timeouts'  => true, // Check memory and time usage and abort if reaching limit.
             'is_complete'       => false, // Is Import Complete?
             'products_total'    => -1,
             'imported'          => 0,
@@ -222,7 +222,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         $mp = $this->generalHelper->createMP();
         $websites = $this->generalHelper->getWebsites(false);
         if (empty($websites)) {
-            return [ 'status' => 'fail', 'message' => __('Websites are not enabled for import.') ];
+            return ['status' => 'fail', 'message' => __('Websites are not enabled for import.')];
         }
         $this->start_time = time();
         $data = [
@@ -244,7 +244,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             case 'single':
                 $sku = $this->params['sku'];
                 if (empty($sku)) {
-                    return [ 'status' => 'fail', 'message' => __('Please provide product sku.') ];
+                    return ['status' => 'fail', 'message' => __('Please provide product sku.')];
                 }
                 $this->data = $mp->getProductBySku($sku);
                 break;
@@ -255,17 +255,17 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         if (isset($this->data->code) && isset($this->data->message)) {
-            return [ 'status' => 'fail', 'message' => $this->data->name.': '.$this->data->message ];
+            return ['status' => 'fail', 'message' => $this->data->name.': '.$this->data->message];
         }
 
         // Check for Products
         $response = $this->data;
-        if (isset($response->products) || ( 'single' === $this->importType && isset($response->product) )) {
+        if (isset($response->products) || ('single' === $this->importType && isset($response->product))) {
             $products = [];
             if ('single' === $this->importType) {
                 if (isset($response->product->status) && 'failed' == $response->product->status) {
                     $error_message = isset($response->product->message) ? $response->product->message : __('Something went wrong during get data from Knawat MP API. Please try again later.');
-                    return [ 'status' => 'fail', 'message' => $error_message ];
+                    return ['status' => 'fail', 'message' => $error_message];
                 }
                 $products[] = $response->product;
             } else {
@@ -273,7 +273,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             }
             // Handle errors
             if (isset($products->code) || !is_array($products)) {
-                return [ 'status' => 'fail', 'message' => __('Something went wrong during get data from Knawat MP API. Please try again later.') ];
+                return ['status' => 'fail', 'message' => __('Something went wrong during get data from Knawat MP API. Please try again later.')];
             }
 
             // Update Product totals.
@@ -340,7 +340,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             // Update stock
                             $stockItem = $this->stockRegistry->getStockItemBySku($var_product->getSku());
                             $stockItem->setQty($variation['stock_quantity']);
-                            $stockItem->setIsInStock((bool)($variation['stock_quantity'] > 0 ) ? 1 : 0);
+                            $stockItem->setIsInStock((bool) ($variation['stock_quantity'] > 0) ? 1 : 0);
                             $this->stockRegistry->updateStockItemBySku($var_product->getSku(), $stockItem);
 
                             $existingAssociatedProductIds[] = $var_product->getId();
@@ -402,7 +402,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 [
                                     'use_config_manage_stock' => 0,
                                     'manage_stock' => $variation['manage_stock'],
-                                    'is_in_stock'  => ($variation['stock_quantity'] > 0 ) ? 1 : 0,
+                                    'is_in_stock'  => ($variation['stock_quantity'] > 0) ? 1 : 0,
                                     'qty' => $variation['stock_quantity']
                                 ]
                             );
@@ -416,12 +416,12 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     if (isset($formated_data['id']) && !empty($formated_data['id']) && $formated_data['id'] > 0) {
                         // Update stock
                         $stockItem = $this->stockRegistry->getStockItemBySku($formated_data['sku']);
-                        $stockItem->setIsInStock((bool)($totalQty > 0 ) ? 1 : 0);
+                        $stockItem->setIsInStock((bool) ($totalQty > 0) ? 1 : 0);
                         $this->stockRegistry->updateStockItemBySku($formated_data['sku'], $stockItem);
 
                         $data['updated'][] = $formated_data['id'];
                         if (!empty($associatedProductSkus)) {
-                            $linkManagement  = $this->objectManager->create(\Magento\ConfigurableProduct\Model\LinkManagement::class);
+                            $linkManagement = $this->objectManager->create(\Magento\ConfigurableProduct\Model\LinkManagement::class);
                             foreach ($associatedProductSkus as $associatedProductSku) {
                                 try {
                                     $linkManagement->addChild($main_product->getSku(), $associatedProductSku);
@@ -433,8 +433,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     } else {
                         // Main Product with versions.
                         $version = $this->productMetadata->getVersion();
-                        $versionCompare = version_compare($version,  "2.2");
-                        if($versionCompare == -1){
+                        $versionCompare = version_compare($version, "2.2");
+                        if ($versionCompare == -1) {
                             /*code for version 2.1.x*/
                         $main_product = $this->productFactory->create();
                         $main_product->setSku($formated_data['sku']);
@@ -480,7 +480,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $main_product->setAssociatedProductIds($associatedProductIds);// Setting Associated Products
                         $main_product->setStockData(
                             [
-                                 'use_config_manage_stock' => 0,
+                                    'use_config_manage_stock' => 0,
 -                                'manage_stock' => 1,
 -                                'is_in_stock' => ($totalQty > 0) ? 1 : 0
                             ]
@@ -540,7 +540,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
                         $data['imported'][] = $productId;
                             /*code for version 2.1.x*/    
-                            } else{
+                            } else {
                             /*code for version 2.2.x*/
                         $main_product = $this->productFactory->create();
                         $main_product->setSku($formated_data['sku']);
@@ -580,7 +580,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             $main_product
                         );
                         $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
-                        $main_product->setAssociatedProductIds($associatedProductIds);// Setting Associated Products
+                        $main_product->setAssociatedProductIds($associatedProductIds); // Setting Associated Products
 
                         // Set Existing Associated Products.
                         if (!empty($existingAssociatedProductIds)) {
@@ -645,7 +645,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         }
                     }
                 } catch (\Exception $e) {
-                    $this->logger->info("[PRODUCT_IMPORT][ERROR] " . $e->getMessage());
+                    $this->logger->info("[PRODUCT_IMPORT][ERROR] ".$e->getMessage());
                     if (isset($formated_data['id'])) {
                         $data['failed'][] = $formated_data['id'];
                     } elseif (isset($formated_data['sku'])) {
@@ -668,7 +668,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             }
             return $data;
         } else {
-            return [ 'status' => 'fail', 'message' => __('Something went wrong during get data from Knawat MP API. Please try again later.') ];
+            return ['status' => 'fail', 'message' => __('Something went wrong during get data from Knawat MP API. Please try again later.')];
         }
     }
 
@@ -722,11 +722,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             continue;
                         }
 
-                        $defaultCode =  isset($attribute->name->en) ?  $attribute->name->en : '';
+                        $defaultCode = isset($attribute->name->en) ? $attribute->name->en : '';
                         if (empty($defaultCode)) {
-                            $defaultCode =  isset($attribute->name->tr) ?  $attribute->name->tr : '';
+                            $defaultCode = isset($attribute->name->tr) ? $attribute->name->tr : '';
                         }
-                        $attributeName = isset($attribute->name->$defaultLanguage) ?  $attribute->name->$defaultLanguage : '';
+                        $attributeName = isset($attribute->name->$defaultLanguage) ? $attribute->name->$defaultLanguage : '';
 
                         // Continue if no attribute name found.
                         if (empty($attributeName) || empty($defaultCode)) {
@@ -800,9 +800,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 if (!isset($attribute->name) || empty($attribute->name) || !isset($attribute->option)) {
                                     continue;
                                 }
-                                $defaultCode =  isset($attribute->name->en) ?  $attribute->name->en : '';
+                                $defaultCode = isset($attribute->name->en) ? $attribute->name->en : '';
                                 if (empty($defaultCode)) {
-                                    $defaultCode =  isset($attribute->name->tr) ?  $attribute->name->tr : '';
+                                    $defaultCode = isset($attribute->name->tr) ? $attribute->name->tr : '';
                                 }
                                 $defaultAttributeName = isset($attribute->name->$defaultLanguage) ? $attribute->name->$defaultLanguage : '';
                                 // Take a chance for not translated attributes
@@ -823,14 +823,14 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 // Add attribute name to $var_attributes for make it taxonomy.
                                 $var_attributes[] = $defaultAttributeName;
 
-                                if (isset($attributes[ $defaultAttributeName ])) {
-                                    if (!array_key_exists($defaultAttributeValue, $attributes[ $defaultAttributeName ]['value'])) {
-                                        $attributes[ $defaultAttributeName ]['value'][$defaultAttributeValue] = $attribute->option;
+                                if (isset($attributes[$defaultAttributeName])) {
+                                    if (!array_key_exists($defaultAttributeValue, $attributes[$defaultAttributeName]['value'])) {
+                                        $attributes[$defaultAttributeName]['value'][$defaultAttributeValue] = $attribute->option;
                                     }
                                 } else {
-                                    $attributes[ $defaultAttributeName ]['name_i18n'] = $attribute->name;
-                                    $attributes[ $defaultAttributeName ]['value'][$defaultAttributeValue] = $attribute->option;
-                                    $attributes[ $defaultAttributeName ]['attr_code'] = $defaultCode;
+                                    $attributes[$defaultAttributeName]['name_i18n'] = $attribute->name;
+                                    $attributes[$defaultAttributeName]['value'][$defaultAttributeValue] = $attribute->option;
+                                    $attributes[$defaultAttributeName]['attr_code'] = $defaultCode;
                                 }
                             }
                             if (isset($temp_variant['raw_attributes']) && !empty($temp_variant['raw_attributes'])) {
@@ -859,7 +859,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             }
             $new_product['variations'] = $variations;
         } catch (\Exception $e) {
-            $this->logger->info("[FORMAT_PRODUCT][ERROR] " . $e->getMessage());
+            $this->logger->info("[FORMAT_PRODUCT][ERROR] ".$e->getMessage());
         }
         return $new_product;
     }
@@ -930,7 +930,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         }
                     }
                     if (empty($storeLabels)) {
-                        $storeLabels = [ $attribute['name'] ];
+                        $storeLabels = [$attribute['name']];
                     }
 
                     if (isset($attribute['taxonomy']) && $attribute['taxonomy'] == '1') {
@@ -946,7 +946,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                     }
                                 }
                                 if (empty($storeValue)) {
-                                    $storeValue = [ $valueKey ];
+                                    $storeValue = [$valueKey];
                                 }
                                 $attributeValues[$attributeCode.'_'.$this->generateAttributeValueKey($valueKey)] = $storeValue;
                             }
@@ -974,7 +974,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 'store_labels'                  => $storeLabels,
                                 'backend_type'                  => 'varchar',
                                 'backend_model'                 => \Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend::class,
-                                'option'                        => [ 'value' => $attributeValues ],
+                                'option'                        => ['value' => $attributeValues],
                             ]
                         );
                         $new_attribute->save();
@@ -1056,7 +1056,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                         }
                                     }
                                     if (empty($storeOption)) {
-                                        $storeOption = [ $valueKey ];
+                                        $storeOption = [$valueKey];
                                     }
 
                                     $_option = $this->objectManager->create(\Magento\Eav\Model\Entity\Attribute\Option::class);
@@ -1103,7 +1103,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 }
             }
         } catch (\Exception $e) {
-            $this->logger->info("[CREATE_UPDATE_ATTRIBUTE][ERROR] " . $e->getMessage());
+            $this->logger->info("[CREATE_UPDATE_ATTRIBUTE][ERROR] ".$e->getMessage());
         }
         return $formattedAttributes;
     }
@@ -1186,13 +1186,13 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             return false;
         }
         // Temporory Directory for Image.
-        $tmpDir = $this->directoryList->getPath(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA) . DIRECTORY_SEPARATOR . 'tmp';
+        $tmpDir = $this->directoryList->getPath(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA).DIRECTORY_SEPARATOR.'tmp';
         // Create folder if it is not exists.
         $this->file->checkAndCreateFolder($tmpDir);
 
         foreach ($imageUrls as $index => $imageUrl) {
             // File Path for download image.
-            $newFileName = $tmpDir . DIRECTORY_SEPARATOR . random_int(999, 9999999) . baseName($imageUrl);
+            $newFileName = $tmpDir.DIRECTORY_SEPARATOR.random_int(999, 9999999).baseName($imageUrl);
             $newFileName = strtok($newFileName, "?");
             $imageType = null;
             if ($index == 0) {

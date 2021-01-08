@@ -90,11 +90,11 @@ class Knawatorderinformation extends \Magento\Framework\View\Element\Template
                 $product = $this->productFactory->create();
                 $productData = $product->load($product->getIdBySku($value->getSku()));
                 if($productData->getIsKnawat()){
-                     $i++;
+                        $i++;
                 }
         }
         if($itemCount == $i){
-           return true;
+            return true;
         } else{
             return false;
         }

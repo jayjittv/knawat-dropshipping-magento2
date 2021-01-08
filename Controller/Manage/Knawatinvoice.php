@@ -52,7 +52,7 @@ class KnawatInvoice extends Action
 
             if (array_key_exists(0, $item)) {
                 $order = $this->orderFactory->create()->load($item[1]);
-                $protectCode =  $order->getProtectCode();
+                $protectCode = $order->getProtectCode();
                 if (array_key_exists(2, $item)) {
                     if ($protectCode == $item[3]) {
                         return $this->resultPageFactory->create();
@@ -60,7 +60,7 @@ class KnawatInvoice extends Action
                 }
             }
         } catch (\Exception $e) {
-            $this->messageManager->addExceptionMessage($e, __('Something went wrong ') . ' ' . $e->getMessage());
+            $this->messageManager->addExceptionMessage($e, __('Something went wrong ').' '.$e->getMessage());
             $this->_redirect('404notfound');
         }
         $this->_redirect('404notfound');

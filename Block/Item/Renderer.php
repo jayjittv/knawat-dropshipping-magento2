@@ -20,17 +20,17 @@ class Renderer extends DefaultRenderer
     /**
      * @var \Magento\Framework\App\RequestInterface
      */
-     protected $request;
+        protected $request;
 
-     /**
-     * @var \Magento\Catalog\Model\ProductFactory
-     */
-     protected $productFactory;
+        /**
+         * @var \Magento\Catalog\Model\ProductFactory
+         */
+        protected $productFactory;
 
-     /**
-     * @var \Magento\Sales\Model\ResourceModel\Order\Item\CollectionFactory
-     */
-     private $itemCollectionFactory;
+        /**
+         * @var \Magento\Sales\Model\ResourceModel\Order\Item\CollectionFactory
+         */
+        private $itemCollectionFactory;
 
     /**
      * @var \Magento\Sales\Model\ResourceModel\Order\Item\Collection|null
@@ -118,10 +118,10 @@ class Renderer extends DefaultRenderer
         return $controller.$action.$route;
     }
 
-     /**
-     * Check All items if of Knawat
-     *
-     */
+        /**
+         * Check All items if of Knawat
+         *
+         */
     public function getCheckKnawatItems(){
         $this->itemCollection = $this->itemCollectionFactory->create();
         $this->itemCollection->setOrderFilter($this->getOrder());
@@ -133,11 +133,11 @@ class Renderer extends DefaultRenderer
                 $product = $this->productFactory->create();
                 $productData = $product->load($product->getIdBySku($value->getSku()));
                 if($productData->getIsKnawat()){
-                     $i++;
+                        $i++;
                 }
         }
         if(($itemCount != $i) && ($i > 0)){
-           return true;
+            return true;
         } else{
             return false;
         }
