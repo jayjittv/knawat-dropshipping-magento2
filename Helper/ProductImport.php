@@ -540,7 +540,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
                         $data['imported'][] = $productId;
                             /*code for version 2.1.x*/    
-                            }else{
+                            } else{
                             /*code for version 2.2.x*/
                         $main_product = $this->productFactory->create();
                         $main_product->setSku($formated_data['sku']);

@@ -70,7 +70,7 @@ class ConnectStore implements MessageInterface
         $url = $this->urlBuilder->getUrl('adminhtml/system_config/edit/section/knawat');
         if($this->confighelper->getToken()){
             return __('Your Store is successfully connected to Knawat.');
-        }else{
+        } else{
             if ($this->confighelper->checkKeyNotAvailable()) {
                 return __('Please <a href="%1">Enter</a> Consumer Key and Consumer Secret Key to connect your store to Knawat, Please go to <a href="%1">Settings</a> to add keys.', $url);
             } else {

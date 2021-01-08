@@ -94,7 +94,7 @@ class Import extends \Magento\Backend\Block\Template
     public function getKnawatConnection(){
          if($this->confighelper->getToken()){
             return true;
-         }else{
+         } else{
             return false;
          }
     }
@@ -104,7 +104,7 @@ class Import extends \Magento\Backend\Block\Template
         $versionCompare = version_compare($version,  "2.2");
         if($versionCompare == -1){
             return true;
-            }else{
+            } else{
                 return false;
         }
     }

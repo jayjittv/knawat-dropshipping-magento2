@@ -95,7 +95,7 @@ class Knawatorderinformation extends \Magento\Framework\View\Element\Template
         }
         if($itemCount == $i){
            return true;
-        }else{
+        } else{
             return false;
         }
     }

@@ -124,7 +124,7 @@ class ManageConfig extends \Magento\Framework\App\Helper\AbstractHelper
                 $token= $mp->getAccessToken();
                 if ($token != '') {
                     return $token;
-                }else{
+                } else{
                     return false;
                 }
             }

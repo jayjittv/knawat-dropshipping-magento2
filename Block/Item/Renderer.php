@@ -78,7 +78,7 @@ class Renderer extends DefaultRenderer
     {
         if($this->getProduct()->getIsKnawat()){
             return true;
-        }else{
+        } else{
             return false;
         }
     }
@@ -138,7 +138,7 @@ class Renderer extends DefaultRenderer
         }
         if(($itemCount != $i) && ($i > 0)){
            return true;
-        }else{
+        } else{
             return false;
         }
     }
