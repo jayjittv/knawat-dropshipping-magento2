@@ -24,7 +24,6 @@ class CommonHelper extends \Magento\Framework\App\Helper\AbstractHelper
      */
     protected $mpApi;
 
-
     /**
      * @var \Magento\Framework\Module\Manager
      */

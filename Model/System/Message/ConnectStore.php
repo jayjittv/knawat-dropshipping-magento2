@@ -15,7 +15,7 @@ class ConnectStore implements MessageInterface
      */
     protected $urlBuilder;
     /**
-     * @var
+     * @var \Knawat\Dropshipping\Helper\ManageConfig
      */
     protected $configHelper;
     /**

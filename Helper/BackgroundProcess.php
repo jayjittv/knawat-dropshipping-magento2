@@ -62,12 +62,12 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
     protected $configModel;
 
     /**
-     * @var General
+     * @var \Knawat\Dropshipping\Helper\General
      */
     protected $generalHelper;
 
     /**
-     * @var SerializerInterface
+     * @var \Magento\Framework\Serialize\SerializerInterface
      */
     private $serializer;
 
@@ -201,7 +201,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Handle cron healthcheck
+     * Handle cron healthCheck
      *
      * Restart the background process if not already running
      * and data exists in the queue.

@@ -20,7 +20,7 @@ class Import extends \Magento\Backend\Block\Template
     protected $configModel;
     
     /**
-     * @var
+     * @var \Knawat\Dropshipping\Helper\ManageConfig
      */
     protected $configHelper;
 
@@ -35,7 +35,7 @@ class Import extends \Magento\Backend\Block\Template
     protected $productMetadata;
 
     /**
-     * @var SerializerInterface
+     * @var \Magento\Framework\Serialize\SerializerInterface
      */
     private $serializer;
 
