@@ -48,13 +48,13 @@ class Import extends \Magento\Backend\Block\Template
         \Magento\Backend\Block\Template\Context $context,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Config\Model\ResourceModel\Config $configModel,
-        \Knawat\Dropshipping\Helper\ManageConfig $confighelper,
+        \Knawat\Dropshipping\Helper\ManageConfig $configHelper,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata,
         \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->configModel = $configModel;
-        $this->confighelper = $confighelper;
+        $this->configHelper = $configHelper;
         $this->productMetadata = $productMetadata;
         $this->serializer = $serializer;
         parent::__construct($context);
@@ -91,7 +91,7 @@ class Import extends \Magento\Backend\Block\Template
     }
 
     public function getKnawatConnection() {
-        return !!$this->confighelper->getToken();
+        return !!$this->configHelper->getToken();
     }
 
     public function isVersionTwo() {
