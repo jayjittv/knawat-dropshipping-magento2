@@ -10,8 +10,7 @@
         "Dropshipping"
     ],
     "require": {
-        "php": ">=7.0.0",
-        "knawat/knawat-php-sdk" : "1.*"
+        "php": ">=7.0.0"
     },
     "autoload": {
         "files": [ "registration.php" ],

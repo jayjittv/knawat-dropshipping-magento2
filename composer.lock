@@ -5,54 +5,6 @@
         "This file is @generated automatically"
     ],
     "content-hash": "d7d3f021d31ce8a44a4056c963e65bea",
-    "packages": [
-        {
-            "name": "knawat/knawat-php-sdk",
-            "version": "1.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Knawat/Knawat-PHP-SDK.git",
-                "reference": "43b54b6af8129f63056f8c225f33217880d18bf9"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Knawat/Knawat-PHP-SDK/zipball/43b54b6af8129f63056f8c225f33217880d18bf9",
-                "reference": "43b54b6af8129f63056f8c225f33217880d18bf9",
-                "shasum": ""
-            },
-            "require": {
-                "ext-curl": "*",
-                "ext-json": "*",
-                "php": ">= 5.4.0"
-            },
-            "require-dev": {
-                "squizlabs/php_codesniffer": "3.*"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Knawat\\": "src/Knawat"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Dharmesh Patel",
-                    "email": "dspatel44@gmail.com"
-                }
-            ],
-            "description": "A PHP wrapper for the Knawat REST API",
-            "keywords": [
-                "Dropshipping",
-                "Knawat",
-                "api"
-            ],
-            "time": "2018-12-11T13:09:51+00:00"
-        }
-    ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
