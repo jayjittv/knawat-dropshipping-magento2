@@ -1,7 +1,7 @@
 <?php
 namespace Knawat\Dropshipping\Helper;
 
-use Knawat\MP;
+use Knawat\Dropshipping\MP;
 use Magento\Framework\ObjectManagerInterface;
 
 /**
@@ -150,7 +150,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
      * @param \Magento\Catalog\Api\Data\ProductInterfaceFactory $productFactory
      * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
-     * @param \Knawat\MPFactory $mpFactory
+     * @param \Knawat\Dropshipping\MPFactory $mpFactory
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -171,7 +171,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \Magento\Catalog\Api\Data\ProductInterfaceFactory $productFactory,
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
-        \Knawat\MPFactory $mpFactory,
+        \Knawat\Dropshipping\MPFactory $mpFactory,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata
     ) {
         parent::__construct($context);

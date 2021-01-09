@@ -2,7 +2,7 @@
 
 namespace Knawat\Dropshipping\Helper;
 
-use Knawat\MP;
+use Knawat\Dropshipping\MP;
 
 use Zend\Log\Writer\Stream;
 use Zend\Log\Logger;
@@ -49,7 +49,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
     public $knawat_order_errors;
 
     /**
-     * @var \Knawat\MPFactory
+     * @var \Knawat\Dropshipping\MPFactory
      */
     protected $mpFactory;
 
@@ -97,7 +97,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Catalog\Model\ProductFactory $productFactory,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Message\ManagerInterface $messageManager,
-        \Knawat\MPFactory $mpFactory,
+        \Knawat\Dropshipping\MPFactory $mpFactory,
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,

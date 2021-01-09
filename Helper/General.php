@@ -2,7 +2,7 @@
 
 namespace Knawat\Dropshipping\Helper;
 
-use Knawat\MP;
+use Knawat\Dropshipping\MP;
 
 /**
  * Class ManageConfig
@@ -25,7 +25,7 @@ class General extends \Magento\Framework\App\Helper\AbstractHelper
     protected $mpApi;
 
     /**
-     * @var \Knawat\MPFactory
+     * @var \Knawat\Dropshipping\MPFactory
      */
     protected $mpFactory;
 
@@ -55,7 +55,7 @@ class General extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
-        \Knawat\MPFactory $mpFactory,
+        \Knawat\Dropshipping\MPFactory $mpFactory,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\App\Config\ConfigResource\ConfigInterface $configInterface,
         \Magento\Config\Model\ResourceModel\Config $configModel,
