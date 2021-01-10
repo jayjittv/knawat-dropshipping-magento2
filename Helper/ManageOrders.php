@@ -106,7 +106,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
     ) {
         $default_args = [
             'limit'             => 2, // Limit for Fetch Orders
-            'page'              => 1,  // Page Number
+            'page'              => 1, // Page Number
         ];
         parent::__construct($context);
         $this->orderFactory = $orderFactory;
@@ -127,7 +127,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
     public function setIsKnawat($orderId)
     {
         $order = $this->getOrderObject($orderId);
-        $items =$order->getAllItems();
+        $items = $order->getAllItems();
         foreach ($items as $item) {
             $isKnawat = $this->isProductKnawat($item);
             if ($isKnawat == 1) {
@@ -159,7 +159,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
         $order_status = $this->getOrderStatus($orderId);
         if ($korder_id && ($korder_id != null)) {
             try {
-                $whilelisted_status = [ 'pending', 'processing', 'canceled' ];
+                $whilelisted_status = ['pending', 'processing', 'canceled'];
                 if (!in_array($order_status, $whilelisted_status)) {
                     // Return as order status is not allowed to push order
                     $order->setKnawatSyncFailed(1);
@@ -169,7 +169,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                 $update_order_json = $this->formatKnawatOrder($orderId);
                 if ($update_order_json) {
                     $this->mp_api = $this->createMP();
-                    $result = $this->mp_api->put('orders/' . $korder_id, $update_order_json);
+                    $result = $this->mp_api->put('orders/'.$korder_id, $update_order_json);
                     if (isset($result->status) && 'success' === $result->status) {
                         $korder_id = $result->data->id;
                         $order->setKnawatSyncFailed(0);
@@ -178,8 +178,8 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                         $order_sync_error = 'Knawat-Dropshipping Order synchronize fail for order '.$orderId;
                         if (isset($result->message)) {
                             $order_sync_error .= ' REASON: ';
-                            $order_sync_error .= isset($result->name) ? $result->name . ':' . $result->message : $result->message;
-                            $order_sync_error .= isset($result->code) ? '('.$result->code . ')' : '';
+                            $order_sync_error .= isset($result->name) ? $result->name.':'.$result->message : $result->message;
+                            $order_sync_error .= isset($result->code) ? '('.$result->code.')' : '';
                         }
                         $knawat_order_errors['order_sync'] = $order_sync_error;
                         $logger->info($knawat_order_errors);
@@ -188,7 +188,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                 }
             } catch (\Exception $e) {
-                $this->messageManager->addExceptionMessage($e, __('Something went wrong ') . ' ' . $e->getMessage());
+                $this->messageManager->addExceptionMessage($e, __('Something went wrong ').' '.$e->getMessage());
             }
         } else {
             return $this->createKnawatOrder($orderId);
@@ -202,7 +202,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $logger = $this->getOrderLogger();
         $order = $this->getOrderObject($orderId);
-        if (! empty($order)) {
+        if (!empty($order)) {
             try {
                 $push_status = 'processing';
                 $order_status = $this->getOrderStatus($orderId);
@@ -224,8 +224,8 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                         $order_sync_error = 'Knawat-Dropshipping Order synchronize fail for order '.$orderId;
                         if (isset($result->message)) {
                             $order_sync_error .= ' REASON: ';
-                            $order_sync_error .= isset($result->name) ? $result->name . ':' . $result->message : $result->message;
-                            $order_sync_error .= isset($result->code) ? '('.$result->code . ')' : '';
+                            $order_sync_error .= isset($result->name) ? $result->name.':'.$result->message : $result->message;
+                            $order_sync_error .= isset($result->code) ? '('.$result->code.')' : '';
                         }
                         $knawat_order_errors['order_sync'] = $order_sync_error;
                         $logger->info($knawat_order_errors);
@@ -234,7 +234,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                 }
             } catch (\Exception $e) {
-                $this->messageManager->addExceptionMessage($e, __('Something went wrong ') . ' ' . $e->getMessage());
+                $this->messageManager->addExceptionMessage($e, __('Something went wrong ').' '.$e->getMessage());
             }
         }
     }
@@ -265,7 +265,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
     public function getKnawatOrderId($orderId)
     {
         $order = $this->getOrderObject($orderId);
-        return $KnawatOrderId  = $order->getknawatOrderId();
+        return $KnawatOrderId = $order->getknawatOrderId();
     }
 
     /**
@@ -287,7 +287,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
 
         if (isset($orderId)) {
             try {
-                $order= $this->getOrderObject($orderId);
+                $order = $this->getOrderObject($orderId);
                 $newOrder = [];
                 $newOrder['id'] = $order->getId();
                 if ($order->getStatus() == 'canceled') {
@@ -305,12 +305,12 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                 }
                 if (isset($items)) {
-                    $newOrder['items'][] = (object)$items;
+                    $newOrder['items'][] = (object) $items;
                 }
                 /*get billing address*/
                 $newOrder['billing']['first_name'] = $order->getBillingAddress()->getFirstname();
                 $newOrder['billing']['last_name'] = $order->getBillingAddress()->getLastname();
-                if($order->getBillingAddress()->getCompany()){
+                if ($order->getBillingAddress()->getCompany()) {
                     $newOrder['billing']['company'] = $order->getBillingAddress()->getCompany();
                 }
 
@@ -327,18 +327,18 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 $newOrder['billing']['city'] = $order->getBillingAddress()->getCity();
                 $newOrder['billing']['state'] = $order->getBillingAddress()->getRegion();
-                if($order->getBillingAddress()->getPostcode()){
+                if ($order->getBillingAddress()->getPostcode()) {
                     $newOrder['billing']['postcode'] = $order->getBillingAddress()->getPostcode();
                 }
                 $newOrder['billing']['country'] = $order->getBillingAddress()->getCountryId();
                 $newOrder['billing']['email'] = $order->getBillingAddress()->getEmail();
-                if($order->getBillingAddress()->getTelephone()){
+                if ($order->getBillingAddress()->getTelephone()) {
                     $newOrder['billing']['phone'] = $order->getBillingAddress()->getTelephone();
                 }
                 /*get shipping address*/
                 $newOrder['shipping']['first_name'] = $order->getBillingAddress()->getFirstname();
                 $newOrder['shipping']['last_name'] = $order->getShippingAddress()->getLastname();
-                if($order->getShippingAddress()->getCompany()){
+                if ($order->getShippingAddress()->getCompany()) {
                     $newOrder['shipping']['company'] = $order->getShippingAddress()->getCompany();
                 }
                 $address = $order->getShippingAddress()->getStreet();
@@ -355,12 +355,12 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
 
                 $newOrder['shipping']['city'] = $order->getShippingAddress()->getCity();
                 $newOrder['shipping']['state'] = $order->getShippingAddress()->getRegion();
-                if($order->getShippingAddress()->getPostcode()){
+                if ($order->getShippingAddress()->getPostcode()) {
                     $newOrder['shipping']['postcode'] = $order->getShippingAddress()->getPostcode();
                 }
                 $newOrder['shipping']['country'] = $order->getShippingAddress()->getCountryId();
                 $newOrder['shipping']['email'] = $order->getShippingAddress()->getEmail();
-                if($order->getShippingAddress()->getTelephone()){
+                if ($order->getShippingAddress()->getTelephone()) {
                     $newOrder['shipping']['phone'] = $order->getShippingAddress()->getTelephone();
                 }
                 $method = $order->getPayment()->getMethod();
@@ -378,7 +378,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                 $orderIdLabel = base64_encode('order_id');
                 $orderIdParam = base64_encode($orderId);
                 $protectCodeLabel = base64_encode('protect_code');
-                $protectCode =  $order->getProtectCode();
+                $protectCode = $order->getProtectCode();
                 $protectCodeParam = base64_encode($protectCode);
                 $newOrder['invoice_url'] = $url.$orderIdLabel."-".$orderIdParam."-".$protectCodeLabel."-".$protectCodeParam;
                 /*history note*/
@@ -388,14 +388,14 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
                         $orderComment[] = $status->getComment();
                     }
                 }
-                $newOrder['notes'] = implode(" , ",$orderComment);
+                $newOrder['notes'] = implode(" , ", $orderComment);
                 /*history note*/
                 $newOrder['billing'] = (object) $newOrder['billing'];
                 $newOrder['shipping'] = (object) $newOrder['shipping'];
                 $newOrder = (object) $newOrder;
                 return $newOrder;
             } catch (\Exception $e) {
-                $this->messageManager->addExceptionMessage($e, __('Something went wrong ') . ' ' . $e->getMessage());
+                $this->messageManager->addExceptionMessage($e, __('Something went wrong ').' '.$e->getMessage());
             }
         }
     }
@@ -408,7 +408,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $productId = $item->getProductId();
         $product = $this->productFactory->create()->load($productId);
-        return $isKnawat= $product->getData('is_knawat');
+        return $isKnawat = $product->getData('is_knawat');
     }
 
     /**
@@ -436,7 +436,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getOrderLogger()
     {
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/knawat_order.log');
+        $writer = new \Zend\Log\Writer\Stream(BP.'/var/log/knawat_order.log');
         $logger = new \Zend\Log\Logger();
         $logger->addWriter($writer);
         return $logger;
@@ -518,7 +518,7 @@ class ManageOrders extends \Magento\Framework\App\Helper\AbstractHelper
             )->create();
         $orders = $this->orderRepository->getList($searchCriteria);
         $failedOrders = [];
-        $blacklisted_state = [ 'canceled', 'holded' ];
+        $blacklisted_state = ['canceled', 'holded'];
         foreach ($orders->getItems() as $order) {
             $orderState = $order->getState();
             if (!in_array($orderState, $blacklisted_state)) {

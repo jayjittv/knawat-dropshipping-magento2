@@ -39,7 +39,7 @@ class UpdateCartProduct implements ObserverInterface
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $item = $observer->getQuoteItem();
-        $item = ( $item->getParentItem() ? $item->getParentItem() : $item );
+        $item = ($item->getParentItem() ? $item->getParentItem() : $item);
         $id = $item->getProduct()->getId();
         $product = $this->productModel->load($id);
         $isKnawat = $product->getIsKnawat();
