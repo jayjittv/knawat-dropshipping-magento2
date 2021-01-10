@@ -31,7 +31,7 @@ class InstallData implements InstallDataInterface
      */
     protected $attributeSetFactory;
     /**
-     * @var
+     * @var AttributeSetFactory
      */
     protected $attributeSet;
     /**
@@ -39,7 +39,7 @@ class InstallData implements InstallDataInterface
      */
     protected $categorySetupFactory;
     /**
-     * @var eavAttribute
+     * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute
      */
     protected $eavAttribute;
     /**
