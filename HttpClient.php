@@ -206,7 +206,7 @@ class HttpClient
      */
     protected function setUrl($params)
     {
-        curl_setopt($this->ch, CURLOPT_URL, $this->api_url . trim($params, '/'));
+        curl_setopt($this->ch, CURLOPT_URL, $this->api_url.trim($params, '/'));
     }
 
     /**
