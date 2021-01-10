@@ -79,7 +79,7 @@ class Knawatorderinformation extends \Magento\Framework\View\Element\Template
         return $trackingLink;
     }
 
-    public function getCheckKnawatItems(){
+    public function getCheckKnawatItems() {
         $this->itemCollection = $this->itemCollectionFactory->create();
         $this->itemCollection->setOrderFilter($this->getOrder());
         $this->itemCollection->filterByParent(null);
@@ -87,17 +87,14 @@ class Knawatorderinformation extends \Magento\Framework\View\Element\Template
         $itemCount = count($itemDetails);
         $i = 0;
         foreach ($itemDetails as  $value) {
-                $product = $this->productFactory->create();
-                $productData = $product->load($product->getIdBySku($value->getSku()));
-                if($productData->getIsKnawat()){
-                     $i++;
-                }
+            $product = $this->productFactory->create();
+            $productData = $product->load($product->getIdBySku($value->getSku()));
+            if ($productData->getIsKnawat()) {
+                $i++;
+            }
         }
-        if($itemCount == $i){
-           return true;
-        }else{
-            return false;
-        }
+        
+        return $itemCount == $i;
     }
 
 }

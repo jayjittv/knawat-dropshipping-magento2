@@ -118,7 +118,7 @@ class General extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getLogger()
     {
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/knawat_products.log');
+        $writer = new \Zend\Log\Writer\Stream(BP.'/var/log/knawat_products.log');
         $logger = new \Zend\Log\Logger();
         $logger->addWriter($writer);
         return $logger;
@@ -210,7 +210,7 @@ class General extends \Magento\Framework\App\Helper\AbstractHelper
             $memory_limit = '128M';
         }
 
-        if (! $memory_limit || -1 === intval($memory_limit)) {
+        if (!$memory_limit || -1 === intval($memory_limit)) {
             // Unlimited, set to 32GB.
             $memory_limit = '32000M';
         }

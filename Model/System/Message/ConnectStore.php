@@ -15,19 +15,19 @@ class ConnectStore implements MessageInterface
      */
     protected $urlBuilder;
     /**
-     * @var
+     * @var \Knawat\Dropshipping\Helper\ManageConfig
      */
     protected $configHelper;
     /**
      * ConnectStore constructor.
-     * @param \Knawat\Dropshipping\Helper\ManageConfig $confighelper
+     * @param \Knawat\Dropshipping\Helper\ManageConfig $configHelper
      * @param \Magento\Framework\UrlInterface $urlBuilder
      */
     public function __construct(
-        \Knawat\Dropshipping\Helper\ManageConfig $confighelper,
+        \Knawat\Dropshipping\Helper\ManageConfig $configHelper,
         \Magento\Framework\UrlInterface $urlBuilder
     ) {
-        $this->confighelper = $confighelper;
+        $this->configHelper = $configHelper;
         $this->urlBuilder = $urlBuilder;
     }
 
@@ -53,7 +53,7 @@ class ConnectStore implements MessageInterface
      */
     public function isDisplayed()
     {
-        if ($this->confighelper->isKnawatEnabled()) {
+        if ($this->configHelper->isKnawatEnabled()) {
             return true;
         } else {
             return false;
@@ -68,10 +68,10 @@ class ConnectStore implements MessageInterface
     public function getText()
     {
         $url = $this->urlBuilder->getUrl('adminhtml/system_config/edit/section/knawat');
-        if($this->confighelper->getToken()){
+        if ($this->configHelper->getToken()) {
             return __('Your Store is successfully connected to Knawat.');
-        }else{
-            if ($this->confighelper->checkKeyNotAvailable()) {
+        } else {
+            if ($this->configHelper->checkKeyNotAvailable()) {
                 return __('Please <a href="%1">Enter</a> Consumer Key and Consumer Secret Key to connect your store to Knawat, Please go to <a href="%1">Settings</a> to add keys.', $url);
             } else {
                 return __('Your store is not connected to Knawat, Please <a href="%1">Enter</a> valid consumer key and secret key from <a href="%1">Settings</a>.', $url);

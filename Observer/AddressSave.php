@@ -37,7 +37,7 @@ class AddressSave implements ObserverInterface
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        $action     = $this->request->getActionName();
+        $action = $this->request->getActionName();
         $address = $observer->getEvent()->getAddress();
         $order = $address->getOrder();
         if ($action == 'addressSave' && $action != '') {
