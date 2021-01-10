@@ -115,13 +115,13 @@ class HttpClient
     }
 
     /**
-    * get function.
-    *
-    * Performs an API GET request
-    *
-    * @access public
-    * @return object
-    */
+     * get function.
+     *
+     * Performs an API GET request
+     *
+     * @access public
+     * @return object
+     */
     public function get($path, $return_array = false)
     {
         // Instantiate a new instance
@@ -136,13 +136,13 @@ class HttpClient
 
 
     /**
-    * post function.
-    *
-    * Performs an API POST request
-    *
-    * @access public
-    * @return object
-    */
+     * post function.
+     *
+     * Performs an API POST request
+     *
+     * @access public
+     * @return object
+     */
     public function post($path, $data = array(), $return_array = false)
     {
         // Instantiate a new instance
@@ -157,13 +157,13 @@ class HttpClient
 
 
     /**
-    * put function.
-    *
-    * Performs an API PUT request
-    *
-    * @access public
-    * @return object
-    */
+     * put function.
+     *
+     * Performs an API PUT request
+     *
+     * @access public
+     * @return object
+     */
     public function put($path, $data = array(), $return_array = false)
     {
         // Instantiate a new instance
@@ -177,13 +177,13 @@ class HttpClient
     }
 
     /**
-    * DELETE function.
-    *
-    * Performs an API DELETE request
-    *
-    * @access public
-    * @return object
-    */
+     * DELETE function.
+     *
+     * Performs an API DELETE request
+     *
+     * @access public
+     * @return object
+     */
     public function delete($path, $data = array(), $return_array = false)
     {
         // Instantiate a new instance
@@ -197,26 +197,26 @@ class HttpClient
     }
 
     /**
-    * setUrl function.
-    *
-    * Takes an API request string and appends it to the API url
-    *
-    * @access protected
-    * @return void
-    */
+     * setUrl function.
+     *
+     * Takes an API request string and appends it to the API url
+     *
+     * @access protected
+     * @return void
+     */
     protected function setUrl($params)
     {
         curl_setopt($this->ch, CURLOPT_URL, $this->api_url . trim($params, '/'));
     }
 
     /**
-    * remoteInstance function.
-    *
-    * Create a cURL instance if none exists already
-    *
-    * @access protected
-    * @return cURL object
-    */
+     * remoteInstance function.
+     *
+     * Create a cURL instance if none exists already
+     *
+     * @access protected
+     * @return cURL object
+     */
     protected function remoteInstance($token_request = false)
     {
         if (!function_exists('curl_version')) {
@@ -235,23 +235,23 @@ class HttpClient
             'User-Agent: '.$this->options['user_agent']
         );
         if (!$token_request) {
-            $headers[] = 'Authorization: Bearer ' . $this->access_token;
+            $headers[] = 'Authorization: Bearer '.$this->access_token;
         }
         curl_setopt($this->ch, CURLOPT_HTTPHEADER, $headers);
         return $this->ch;
     }
 
     /**
-    * execute function.
-    *
-    * Executes the API request
-    *
-    * @access protected
-    * @param  string  $request_type
-    * @param  array   $data
-    * @param  boolean $return_array - if we want to retrieve an array with additional information.
-    * @return object
-    */
+     * execute function.
+     *
+     * Executes the API request
+     *
+     * @access protected
+     * @param  string  $request_type
+     * @param  array   $data
+     * @param  boolean $return_array - if we want to retrieve an array with additional information.
+     * @return object
+     */
     protected function execute($request_type, $data = array(), $return_array = false)
     {
         // Set the HTTP request type

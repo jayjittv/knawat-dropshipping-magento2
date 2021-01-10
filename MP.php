@@ -129,13 +129,13 @@ class MP
     }
 
     /**
-    * get function.
-    *
-    * Performs an API GET request
-    *
-    * @access public
-    * @return object
-    */
+     * get function.
+     *
+     * Performs an API GET request
+     *
+     * @access public
+     * @return object
+     */
     public function get($path, $return_array = false)
     {
         return $this->client->get($path, $return_array);
@@ -143,13 +143,13 @@ class MP
 
 
     /**
-    * post function.
-    *
-    * Performs an API POST request
-    *
-    * @access public
-    * @return object
-    */
+     * post function.
+     *
+     * Performs an API POST request
+     *
+     * @access public
+     * @return object
+     */
     public function post($path, $data = array(), $return_array = false)
     {
         return $this->client->post($path, $data, $return_array);
@@ -157,26 +157,26 @@ class MP
 
 
     /**
-    * put function.
-    *
-    * Performs an API PUT request
-    *
-    * @access public
-    * @return object
-    */
+     * put function.
+     *
+     * Performs an API PUT request
+     *
+     * @access public
+     * @return object
+     */
     public function put($path, $data = array(), $return_array = false)
     {
         return $this->client->put($path, $data, $return_array);
     }
 
     /**
-    * DELETE function.
-    *
-    * Performs an API DELETE request
-    *
-    * @access public
-    * @return object
-    */
+     * DELETE function.
+     *
+     * Performs an API DELETE request
+     *
+     * @access public
+     * @return object
+     */
     public function delete($path, $data = array(), $return_array = false)
     {
         return $this->client->delete($path, $data, $return_array);
