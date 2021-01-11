@@ -215,7 +215,7 @@ class HttpClient
     * Create a cURL instance if none exists already
     *
     * @access protected
-    * @return cURL object
+    * @return curl object
     */
     protected function remoteInstance($token_request = false)
     {
