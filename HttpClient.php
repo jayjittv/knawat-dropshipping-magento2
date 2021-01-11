@@ -52,7 +52,7 @@ class HttpClient
     /**
      * Contain cURL instance
      */
-    private $ch;
+    private $chApi;
 
     /**
      * Initialize Knawat REST API Client
@@ -206,7 +206,7 @@ class HttpClient
     */
     protected function setUrl($params)
     {
-        curl_setopt($this->ch, CURLOPT_URL, $this->api_url . trim($params, '/'));
+        curl_setopt($this->chApi, CURLOPT_URL, $this->api_url . trim($params, '/'));
     }
 
     /**
@@ -223,13 +223,13 @@ class HttpClient
             throw new \Exception('cURL is NOT installed on this server');
         }
 
-        $this->ch = curl_init();
-        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($this->ch, CURLOPT_MAXREDIRS, 10);
-        curl_setopt($this->ch, CURLOPT_TIMEOUT, $this->options['timeout']);
-        curl_setopt($this->ch, CURLOPT_CONNECTTIMEOUT, $this->options['timeout']);
-        curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, $this->options['verify_ssl']);
-        curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, $this->options['verify_ssl']);
+        $this->chApi = curl_init();
+        curl_setopt($this->chApi, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($this->chApi, CURLOPT_MAXREDIRS, 10);
+        curl_setopt($this->chApi, CURLOPT_TIMEOUT, $this->options['timeout']);
+        curl_setopt($this->chApi, CURLOPT_CONNECTTIMEOUT, $this->options['timeout']);
+        curl_setopt($this->chApi, CURLOPT_SSL_VERIFYPEER, $this->options['verify_ssl']);
+        curl_setopt($this->chApi, CURLOPT_SSL_VERIFYHOST, $this->options['verify_ssl']);
         $headers = array(
             'Content-Type: application/json',
             'User-Agent: '.$this->options['user_agent']
@@ -237,8 +237,8 @@ class HttpClient
         if (!$token_request) {
             $headers[] = 'Authorization: Bearer ' . $this->access_token;
         }
-        curl_setopt($this->ch, CURLOPT_HTTPHEADER, $headers);
-        return $this->ch;
+        curl_setopt($this->chApi, CURLOPT_HTTPHEADER, $headers);
+        return $this->chApi;
     }
 
     /**
@@ -255,26 +255,24 @@ class HttpClient
     protected function execute($request_type, $data = array(), $return_array = false)
     {
         // Set the HTTP request type
-        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, $request_type);
+        curl_setopt($this->chApi, CURLOPT_CUSTOMREQUEST, $request_type);
 
         // Prepare to post the data
         if (is_object($data) || is_array($data)) {
             $data = json_encode($data);
-            curl_setopt($this->ch, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($this->chApi, CURLOPT_POSTFIELDS, $data);
         }
 
         // Execute the request and decode the response to JSON
-        $resource_data = json_decode(curl_exec($this->ch));
+        $resource_data = json_decode(curl_exec($this->chApi));
 
-        // Retrieve the HTTP response code
-        $response_code = (int) curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
         if ($return_array) {
             $response_data = json_encode($resource_data);
-            $curl_request_url = curl_getinfo($this->ch, CURLINFO_EFFECTIVE_URL);
-            $curl_info = curl_getinfo($this->ch);
+            $curl_request_url = curl_getinfo($this->chApi, CURLINFO_EFFECTIVE_URL);
+            $curl_info = curl_getinfo($this->chApi);
         }
         // Close cURL Connection.
-        curl_close($this->ch);
+        curl_close($this->chApi);
 
         // Everything went well, return the resource data object.
         if ($return_array) {

@@ -94,12 +94,12 @@ class MP
     /**
      * Get Knawat Order By ID
      *
-     * @param string $id
+     * @param string $orderId
      * @return object Knawat Product Object
      */
-    public function getOrderById($id)
+    public function getOrderById($orderId)
     {
-        $path = '/orders/'.$id;
+        $path = '/orders/'.$orderId;
         return $this->client->get($path);
     }
 
