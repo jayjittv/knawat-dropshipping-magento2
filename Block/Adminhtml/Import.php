@@ -20,7 +20,7 @@ class Import extends \Magento\Backend\Block\Template
     protected $configModel;
     
     /**
-     * @var
+     * @var \Knawat\Dropshipping\Helper\ManageConfig
      */
     protected $configHelper;
 
@@ -35,7 +35,7 @@ class Import extends \Magento\Backend\Block\Template
     protected $productMetadata;
 
     /**
-     * @var SerializerInterface
+     * @var \Magento\Framework\Serialize\SerializerInterface
      */
     private $serializer;
 
@@ -48,13 +48,13 @@ class Import extends \Magento\Backend\Block\Template
         \Magento\Backend\Block\Template\Context $context,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Config\Model\ResourceModel\Config $configModel,
-        \Knawat\Dropshipping\Helper\ManageConfig $confighelper,
+        \Knawat\Dropshipping\Helper\ManageConfig $configHelper,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata,
         \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->configModel = $configModel;
-        $this->confighelper = $confighelper;
+        $this->configHelper = $configHelper;
         $this->productMetadata = $productMetadata;
         $this->serializer = $serializer;
         parent::__construct($context);
@@ -85,27 +85,18 @@ class Import extends \Magento\Backend\Block\Template
         }
 
         if (!empty($importData)) {
-            $batch = $this->serializer->unserialize($importData);
-            return $batch;
+            return $this->serializer->unserialize($importData);
         }
         return false;
     }
 
-    public function getKnawatConnection(){
-         if($this->confighelper->getToken()){
-            return true;
-         }else{
-            return false;
-         }
+    public function getKnawatConnection() {
+        return !!$this->configHelper->getToken();
     }
 
-    public function isVersionTwo(){
+    public function isVersionTwo() {
         $version = $this->productMetadata->getVersion();
-        $versionCompare = version_compare($version,  "2.2");
-        if($versionCompare == -1){
-            return true;
-            }else{
-                return false;
-        }
+        $versionCompare = version_compare($version, "2.2");
+        return $versionCompare == -1;
     }
 }

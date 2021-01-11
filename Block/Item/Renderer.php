@@ -20,17 +20,17 @@ class Renderer extends DefaultRenderer
     /**
      * @var \Magento\Framework\App\RequestInterface
      */
-     protected $request;
+        protected $request;
 
-     /**
-     * @var \Magento\Catalog\Model\ProductFactory
-     */
-     protected $productFactory;
+        /**
+         * @var \Magento\Catalog\Model\ProductFactory
+         */
+        protected $productFactory;
 
-     /**
-     * @var \Magento\Sales\Model\ResourceModel\Order\Item\CollectionFactory
-     */
-     private $itemCollectionFactory;
+        /**
+         * @var \Magento\Sales\Model\ResourceModel\Order\Item\CollectionFactory
+         */
+        private $itemCollectionFactory;
 
     /**
      * @var \Magento\Sales\Model\ResourceModel\Order\Item\Collection|null
@@ -76,9 +76,9 @@ class Renderer extends DefaultRenderer
      */
     public function checkIsKnawat()
     {
-        if($this->getProduct()->getIsKnawat()){
+        if ($this->getProduct()->getIsKnawat()) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -111,18 +111,18 @@ class Renderer extends DefaultRenderer
      * Check Page is sales order view 
      *
      */
-    public function getSalesController(){
+    public function getSalesController() {
         $controller = $this->request->getControllerName();
         $action     = $this->request->getActionName();
         $route      = $this->request->getRouteName();
         return $controller.$action.$route;
     }
 
-     /**
-     * Check All items if of Knawat
-     *
-     */
-    public function getCheckKnawatItems(){
+        /**
+         * Check All items if of Knawat
+         *
+         */
+    public function getCheckKnawatItems() {
         $this->itemCollection = $this->itemCollectionFactory->create();
         $this->itemCollection->setOrderFilter($this->getOrder());
         $this->itemCollection->filterByParent(null);
@@ -130,16 +130,13 @@ class Renderer extends DefaultRenderer
         $itemCount = count($itemDetails);
         $i = 0;
         foreach ($itemDetails as  $value) {
-                $product = $this->productFactory->create();
-                $productData = $product->load($product->getIdBySku($value->getSku()));
-                if($productData->getIsKnawat()){
-                     $i++;
-                }
+            $product = $this->productFactory->create();
+            $productData = $product->load($product->getIdBySku($value->getSku()));
+            if ($productData->getIsKnawat()) {
+                $i++;
+            }
         }
-        if(($itemCount != $i) && ($i > 0)){
-           return true;
-        }else{
-            return false;
-        }
+        
+        return ($itemCount != $i) && ($i > 0);
     }
 }

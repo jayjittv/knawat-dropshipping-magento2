@@ -73,10 +73,10 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
     protected function task($item = [])
     {
         $logger = $this->generalHelper->getLogger();
-        $logger->info("Item: " . print_r($item, true));
+        $logger->info("Item: ".print_r($item, true));
 
         $results = $this->importer->import('full', $item);
-        $logger->info("Results: " . print_r($results, true));
+        $logger->info("Results: ".print_r($results, true));
 
         $params = $this->importer->getImportParams();
         if (isset($results['status']) && 'fail' === $results['status']) {
@@ -113,13 +113,13 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
             }
 
             // Logs import data
-            $logger->info("[IMPORT_STATS_FINAL]" . print_r($item, true));
+            $logger->info("[IMPORT_STATS_FINAL]".print_r($item, true));
 
             // Return false to complete background import.
             return false;
         } else {
             $item = $params;
-            if ($params['products_total'] == ( $params['product_index'] + 1 )) {
+            if ($params['products_total'] == ($params['product_index'] + 1)) {
                 $item['page']  = $params['page'] + 1;
                 $item['product_index']  = -1;
             } else {

@@ -37,7 +37,7 @@ class OrderSave implements ObserverInterface
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        $route      = $this->request->getRouteName();
+        $route = $this->request->getRouteName();
         $order = $observer->getEvent()->getOrder();
         if ($route == 'sales' && $route != '') {
             $isKnawat = $this->orderhelper->getIsKnawat($order->getId());

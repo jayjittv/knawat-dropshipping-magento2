@@ -62,12 +62,12 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
     protected $configModel;
 
     /**
-     * @var General
+     * @var \Knawat\Dropshipping\Helper\General
      */
     protected $generalHelper;
 
     /**
-     * @var SerializerInterface
+     * @var \Magento\Framework\Serialize\SerializerInterface
      */
     private $serializer;
 
@@ -201,7 +201,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Handle cron healthcheck
+     * Handle cron healthCheck
      *
      * Restart the background process if not already running
      * and data exists in the queue.
@@ -258,18 +258,18 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
             }
 
             // Update or delete current batch.
-            if (! empty($batch)) {
+            if (!empty($batch)) {
                 $this->setConfig($this->identifier, $this->serializer->serialize($batch));
             } else {
                 $this->deleteConfig($this->identifier);
             }
-        } while (! $this->generalHelper->timeExceeded($this->start_time) && ! $this->generalHelper->memoryExceeded() && ! $this->isQueueEmpty());
+        } while (!$this->generalHelper->timeExceeded($this->start_time) && !$this->generalHelper->memoryExceeded() && !$this->isQueueEmpty());
 
         // UnLockProcess
         $this->unlockProcess();
 
         // Start next batch or complete process.
-        if (! $this->isQueueEmpty()) {
+        if (!$this->isQueueEmpty()) {
             $this->dispatch();
         }
         return true;
@@ -393,7 +393,7 @@ class BackgroundProcess extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function killProcess()
     {
-        if (! $this->isQueueEmpty()) {
+        if (!$this->isQueueEmpty()) {
             // Delete Database Batch
             $this->deleteConfig($this->identifier);
 

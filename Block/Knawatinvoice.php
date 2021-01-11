@@ -65,7 +65,7 @@ class Knawatinvoice extends \Magento\Sales\Block\Items\AbstractItems
                 return $this->orderFactory->create()->load($item[1]);
             }
         } catch (\Exception $e) {
-            $this->messageManager->addExceptionMessage($e, __('Something went wrong ') . ' ' . $e->getMessage());
+            $this->messageManager->addExceptionMessage($e, __('Something went wrong ').' '.$e->getMessage());
         }
     }
     /**
