@@ -112,12 +112,8 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
             if (strpos($date, 'Z') !== false) {
                 $date = str_replace('Z', '', $date);
             }
-            $date = $this->timezone->date(new \DateTime($date))->format('Y-m-d H:i:s.u');
-            $useconds = $this->timezone->date(new \DateTime($date))->format('u');
-            $timeStamp = strtotime($date);
-            $ts_micro = (float) ($timeStamp . '.' . $useconds);
-            $ts_mili = (float) ($ts_micro * 1000);
-            $lastUpdateTime = round($ts_mili);
+            $datetime = new \DateTime($date);
+			$lastUpdateTime = (int) ($datetime->getTimestamp().$datetime->format('u')/ 1000);
             $lastImportPath = parent::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
             $this->setConfig($lastImportPath, $lastUpdateTime);
         }
