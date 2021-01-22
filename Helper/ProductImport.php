@@ -1202,7 +1202,6 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             $ch = curl_init($imageUrl);
             curl_setopt($ch, CURLOPT_HEADER, 0);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_BINARYTRANSFER, 1);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
@@ -1211,7 +1210,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             curl_close($ch);
             try {
                 $image = fopen($newFileName, 'w');
-                fwrite($image, $raw_image_data);
+                fwrite($image, /** @scrutinizer ignore-type */ $raw_image_data);
                 fclose($image);
                 // Check file exists or not.
                 if (file_exists($newFileName)) {

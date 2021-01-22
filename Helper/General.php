@@ -47,7 +47,7 @@ class General extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * ManageConfig constructor.
      * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Knawat\MPFactory $mpFactory
+     * @param \Knawat\Dropshipping\MPFactory $mpFactory
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Framework\Message\ManagerInterface $messageManager
      * @param \Magento\Framework\Module\Manager $moduleManager

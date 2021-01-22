@@ -53,6 +53,18 @@ class HttpClient
      * Contain cURL instance
      */
     private $chApi;
+    /**
+     * Contain curl_request_url instance
+     */
+    private $curl_request_url;
+    /**
+     * Contain response_data instance
+     */
+    private $response_data;
+    /**
+     * Contain curl_info instance
+     */
+    private $curl_info;
 
     /**
      * Initialize Knawat REST API Client
@@ -80,7 +92,7 @@ class HttpClient
     /**
      * Get Token from knawat for API operations.
      *
-     * @return string token
+     * @return string|bool token
      */
     protected function getToken()
     {
@@ -215,7 +227,7 @@ class HttpClient
     * Create a cURL instance if none exists already
     *
     * @access protected
-    * @return curl object
+    * @return object
     */
     protected function remoteInstance($token_request = false)
     {
@@ -250,7 +262,7 @@ class HttpClient
     * @param  string  $request_type
     * @param  array   $data
     * @param  boolean $return_array - if we want to retrieve an array with additional information.
-    * @return object
+    * @return array<integer,mixed|string>
     */
     protected function execute($request_type, $data = array(), $return_array = false)
     {
@@ -264,12 +276,12 @@ class HttpClient
         }
 
         // Execute the request and decode the response to JSON
-        $resource_data = json_decode(curl_exec($this->chApi));
+        $resource_data = json_decode(/** @scrutinizer ignore-type */ curl_exec($this->chApi));
 
         if ($return_array) {
-            $response_data = json_encode($resource_data);
-            $curl_request_url = curl_getinfo($this->chApi, CURLINFO_EFFECTIVE_URL);
-            $curl_info = curl_getinfo($this->chApi);
+            $this->response_data = json_encode($resource_data);
+            $this->curl_request_url = curl_getinfo($this->chApi, CURLINFO_EFFECTIVE_URL);
+            $this->curl_info = curl_getinfo($this->chApi);
         }
         // Close cURL Connection.
         curl_close($this->chApi);
@@ -277,11 +289,11 @@ class HttpClient
         // Everything went well, return the resource data object.
         if ($return_array) {
             return array(
-                $resource_data,
-                $curl_request_url,
+                $this->resource_data,
+                $this->curl_request_url,
                 $data,
-                $response_data,
-                $curl_info
+                $this->response_data,
+                $this->curl_info
             );
         }
 

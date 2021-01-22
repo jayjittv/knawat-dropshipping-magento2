@@ -42,7 +42,7 @@ class ManageConfig extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * ManageConfig constructor.
      * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Knawat\MPFactory $mpFactory
+     * @param \Knawat\Dropshipping\MPFactory $mpFactory
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Framework\Message\ManagerInterface $messageManager
      * @param \Magento\Framework\Module\Manager $moduleManager
@@ -80,7 +80,6 @@ class ManageConfig extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $consumer_key = $this->getConfigData('consumer_key');
         $consumer_secret = $this->getConfigData('consumer_secret');
-        if (($consumer_key != '') && ($consumer_secret != '')) {
             if ($this->mpApi == null) {
                 $mp = $this->mpFactory->create([
                     'consumer_key' => $consumer_key,
@@ -91,9 +90,6 @@ class ManageConfig extends \Magento\Framework\App\Helper\AbstractHelper
             } else {
                 return $this->mpApi;
             }
-        } else {
-            return false;
-        }
     }
 
 
