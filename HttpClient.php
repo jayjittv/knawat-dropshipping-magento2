@@ -119,7 +119,7 @@ class HttpClient
     /**
      * Get Knawat REST API Access Token
      *
-     * @return string $access_token
+     * @return string|bool $access_token
      */
     public function getAccessToken()
     {
@@ -132,7 +132,7 @@ class HttpClient
     * Performs an API GET request
     *
     * @access public
-    * @return object
+    * @return array<integer,mixed|string>
     */
     public function get($path, $return_array = false)
     {
@@ -153,7 +153,7 @@ class HttpClient
     * Performs an API POST request
     *
     * @access public
-    * @return object
+    * @return array<integer,mixed|string>
     */
     public function post($path, $data = array(), $return_array = false)
     {
@@ -174,7 +174,7 @@ class HttpClient
     * Performs an API PUT request
     *
     * @access public
-    * @return object
+    * @return array<integer,mixed|string>
     */
     public function put($path, $data = array(), $return_array = false)
     {
@@ -194,7 +194,7 @@ class HttpClient
     * Performs an API DELETE request
     *
     * @access public
-    * @return object
+    * @return array<integer,mixed|string>
     */
     public function delete($path, $data = array(), $return_array = false)
     {
@@ -227,7 +227,7 @@ class HttpClient
     * Create a cURL instance if none exists already
     *
     * @access protected
-    * @return object
+    * @return object|resource
     */
     protected function remoteInstance($token_request = false)
     {
