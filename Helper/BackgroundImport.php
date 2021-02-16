@@ -106,12 +106,6 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
         }
         if($params['last_updated']){
             $date = $params['last_updated'];
-            if (strpos($date, 'T') !== false) {
-                $date = str_replace('T', ' ', $date);
-            }
-            if (strpos($date, 'Z') !== false) {
-                $date = str_replace('Z', '', $date);
-            }
             $datetime = new \DateTime($date);
 			$lastUpdateTime = (int) ($datetime->getTimestamp().$datetime->format('u')/ 1000);
             $lastImportPath = parent::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
