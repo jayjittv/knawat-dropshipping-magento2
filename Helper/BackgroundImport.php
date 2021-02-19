@@ -125,7 +125,6 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
         } else {
             $item = $params;
             if ($params['products_total'] == ($params['product_index'] + 1)) {
-                $item['page']  = $params['page'] + 1;
                 $item['product_index']  = -1;
             } else {
                 $item['page']  = $params['page'];
