@@ -104,12 +104,15 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
              $lastImportedCount = parent::PATH_KNAWAT_DEFAULT.'knawat_last_imported_count';
             $this->setConfig($lastImportedCount, $params['products_total']);
         }
-        if($params['last_updated']){
+         if(array_key_exists('last_updated',$params)){
             $date = $params['last_updated'];
             $datetime = new \DateTime($date);
-			$lastUpdateTime = (int) ($datetime->getTimestamp().$datetime->format('u')/ 1000);
+            $lastUpdateTime = (int) ($datetime->getTimestamp().$datetime->format('u')/ 1000);
             $lastImportPath = parent::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
             $this->setConfig($lastImportPath, $lastUpdateTime);
+            $item['page']  = 1;
+        }else{
+            $item['page']  += 1;
         }
         if ($params['is_complete']) {
             // Send success.

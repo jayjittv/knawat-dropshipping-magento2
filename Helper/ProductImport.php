@@ -309,7 +309,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $totalQty += isset($vars['stock_quantity']) ? $vars['stock_quantity'] : 0;
                     }
                 }
-                if(isset($formated_data['updated_time'])){
+                if(!empty($formated_data['updated_time'])){
                     $this->params['last_updated'] = $formated_data['updated_time'];
                 }
 
@@ -694,7 +694,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
             $sku = $product->sku;
             $updated = $product->updated;
-            if($updated){
+            if(isset($updated)){
                 $new_product['updated_time'] = $updated;
             }
             $product_id = $this->getProductBySku($sku);
