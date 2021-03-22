@@ -131,7 +131,7 @@ class BackgroundImport extends \Knawat\Dropshipping\Helper\BackgroundProcess
                 $item['product_index']  = -1;
             } else {
                 $item['page']  = $params['page'];
-                $item['product_index']  = $params['product_index'];
+                $item['product_index']  = -1;
             }
             $item['imported'] += count($results['imported']);
             $item['failed']   += count($results['failed']);
