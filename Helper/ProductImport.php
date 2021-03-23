@@ -235,10 +235,13 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         switch ($this->importType) {
             case 'full':
                 $lastUpdated = $this->generalHelper->getConfigDirect('knawat_last_imported', true);
-                if (empty($lastUpdated) || (isset($this->params['is_manual']) && $this->params['is_manual'] == 'true')) {
+                $sortData = array(
+                  'sort' => array('field'=>'updated','order'=>'asc')
+                );
+                if (empty($lastUpdated)) {
                     $lastUpdated = 0;
                 }
-                $this->data = $mp->getProducts($this->params['limit'], $this->params['page'], $lastUpdated);
+                $this->data = $mp->getProducts($this->params['limit'], $this->params['page'], $lastUpdated,$sortData);
                 break;
 
             case 'single':
@@ -305,6 +308,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     foreach ($variations as $vars) {
                         $totalQty += isset($vars['stock_quantity']) ? $vars['stock_quantity'] : 0;
                     }
+                }
+                if(!empty($formated_data['updated_time'])){
+                    $this->params['last_updated'] = $formated_data['updated_time'];
                 }
 
                 if (!isset($formated_data['id']) || empty($formated_data['id'])) {
@@ -687,6 +693,10 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             $attributes = [];
 
             $sku = $product->sku;
+            $updated = $product->updated;
+            if(isset($updated)){
+                $new_product['updated_time'] = $updated;
+            }
             $product_id = $this->getProductBySku($sku);
             if ($product_id) {
                 $new_product['id'] = $product_id;
