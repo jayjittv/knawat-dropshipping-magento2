@@ -285,7 +285,18 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->params['is_complete'] = true;
                 return $data;
             }
-
+            /*import complete if time matches*/
+            $date = end($this->data->products)->updated;
+            $lastUpdated = $this->generalHelper->getConfigDirect('knawat_last_imported', true);
+            if(isset($lastUpdated)){
+                $datetime = new \DateTime($date);
+                $lastUpdateTime = (int) ($datetime->getTimestamp().$datetime->format('u')/ 1000);
+                if ($lastUpdateTime == $lastUpdated && $this->params['products_total'] < $this->params['limit']) {
+                        $this->params['products_total'] = 0;
+                        $this->params['is_complete'] = true;
+                        return $data;
+                    }
+            }
             // General Variables
             $attributeSetId = $this->getAttrSetId('Knawat');
             $defaultCategoryId = $this->storeManager->getStore()->getRootCategoryId();
