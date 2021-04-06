@@ -1095,7 +1095,15 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                     }
                                     $_attributeOptionLabel->setStoreId(0);
                                     $_attributeOptionLabel->setLabel($valueKey);
-                                    $_option->setLabel($_attributeOptionLabel);
+                                    /*version compare for set label*/
+                                    $version = $this->productMetadata->getVersion();
+                                    $versionCompare = version_compare($version, "2.3");
+                                    if ($versionCompare == 1) {
+                                         $_option->setLabel($valueKey);
+                                     }else{
+                                         $_option->setLabel($_attributeOptionLabel);
+                                     }
+
                                     $_option->setStoreLabels($storeLabels);
                                     $_option->setSortOrder(0);
                                     $_option->setIsDefault(false);
