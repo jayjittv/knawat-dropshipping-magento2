@@ -285,7 +285,20 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->params['is_complete'] = true;
                 return $data;
             }
-
+            /*import complete if time matches*/
+            if ($this->params['products_total'] < $this->params['limit']) {
+                $date = end($this->data->products)->updated;
+                $lastUpdated = $this->generalHelper->getConfigDirect('knawat_last_imported', true);
+                if(isset($lastUpdated)){
+                    $datetime = new \DateTime($date);
+                    $lastUpdateTime = (int) ($datetime->getTimestamp().$datetime->format('u')/ 1000);
+                    if ($lastUpdateTime == $lastUpdated) {
+                            $this->params['products_total'] = 0;
+                            $this->params['is_complete'] = true;
+                            return $data;
+                        }
+                }
+            }
             // General Variables
             $attributeSetId = $this->getAttrSetId('Knawat');
             $defaultCategoryId = $this->storeManager->getStore()->getRootCategoryId();
@@ -1082,7 +1095,15 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                     }
                                     $_attributeOptionLabel->setStoreId(0);
                                     $_attributeOptionLabel->setLabel($valueKey);
-                                    $_option->setLabel($_attributeOptionLabel);
+                                    /*version compare for set label*/
+                                    $version = $this->productMetadata->getVersion();
+                                    $versionCompare = version_compare($version, "2.3");
+                                    if ($versionCompare == 1) {
+                                         $_option->setLabel($valueKey);
+                                     }else{
+                                         $_option->setLabel($_attributeOptionLabel);
+                                     }
+
                                     $_option->setStoreLabels($storeLabels);
                                     $_option->setSortOrder(0);
                                     $_option->setIsDefault(false);
