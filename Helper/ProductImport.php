@@ -1192,7 +1192,12 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
         foreach ($imageUrls as $index => $imageUrl) {
             // File Path for download image.
-            $newFileName = $tmpDir.DIRECTORY_SEPARATOR.random_int(999, 9999999).baseName($imageUrl);
+           $tempImgName =  random_int(999, 9999999) . baseName($imageUrl);
+            $newFileName = $tmpDir . DIRECTORY_SEPARATOR . $tempImgName;
+            if(strlen($tempImgName)>=90){
+                $cutLength = (strlen($tempImgName) - 90) +10;
+                $newFileName = $tmpDir . DIRECTORY_SEPARATOR . substr($tempImgName, $cutLength);
+            }
             $newFileName = strtok($newFileName, "?");
             $imageType = null;
             if ($index == 0) {
