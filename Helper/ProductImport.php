@@ -286,6 +286,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 return $data;
             }
             /*import complete if time matches*/
+            $date='';
             if ($this->params['products_total'] < $this->params['limit']) {
                 $date = end($this->data->products)->updated;
                 $lastUpdated = $this->generalHelper->getConfigDirect('knawat_last_imported', true);
@@ -500,8 +501,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $main_product->setStockData(
                             [
                                     'use_config_manage_stock' => 0,
--                                'manage_stock' => 1,
--                                'is_in_stock' => ($totalQty > 0) ? 1 : 0
+                                    'manage_stock' => 1,
+                                    'is_in_stock' => ($totalQty > 0) ? 1 : 0
                             ]
                         );
                         // Set Existing Associated Products.
@@ -684,6 +685,15 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->params['is_complete'] = true;
             } else {
                 $this->params['is_complete'] = false;
+            }
+            if(!empty($date) && $lastUpdated != $lastUpdateTime){
+                //update product import date           
+                $lastImportPath = self::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
+                $this->generalHelper->setConfig($lastImportPath, $lastUpdateTime);
+                    $this->params['page'] = 1;
+                    $this->params['product_index'] = -1;
+            } else if( $this->params['products_total'] == ( $this->params['product_index'] + 1 ) ){
+                $this->params['page'] += 1;
             }
             return $data;
         } else {
