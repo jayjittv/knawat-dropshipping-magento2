@@ -285,24 +285,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->params['is_complete'] = true;
                 return $data;
             }
-            /*import complete if time matches*/
-            if ($this->params['products_total'] < $this->params['limit']) {
-                $date = end($this->data->products)->updated;
-                $lastUpdated = $this->generalHelper->getConfigDirect('knawat_last_imported', true);
-                if(isset($lastUpdated)){
-                    $datetime = new \DateTime($date);
-                    $lastUpdateTime = (int) ($datetime->getTimestamp().$datetime->format('u')/ 1000);
-                    if ($lastUpdateTime == $lastUpdated) {
-                            $this->params['products_total'] = 0;
-                            $this->params['is_complete'] = true;
-                            return $data;
-                        }
-                }
-            }
             // General Variables
             $attributeSetId = $this->getAttrSetId('Knawat');
             $defaultCategoryId = $this->storeManager->getStore()->getRootCategoryId();
             $savedAttributes = [];
+            $date='';
             foreach ($products as $index => $product) {
                 if ($index <= $this->params['product_index']) {
                     continue;
@@ -325,7 +312,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 if(!empty($formated_data['updated_time'])){
                     $this->params['last_updated'] = $formated_data['updated_time'];
                 }
-
+                if(!empty($product->updated)){
+                    $date = $product->updated;
+                }
                 if (!isset($formated_data['id']) || empty($formated_data['id'])) {
                     if ($totalQty == 0) {
                         $data['skipped'][] = $formated_data['sku'];
@@ -500,8 +489,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $main_product->setStockData(
                             [
                                     'use_config_manage_stock' => 0,
--                                'manage_stock' => 1,
--                                'is_in_stock' => ($totalQty > 0) ? 1 : 0
+                                    'manage_stock' => 1,
+                                    'is_in_stock' => ($totalQty > 0) ? 1 : 0
                             ]
                         );
                         // Set Existing Associated Products.
@@ -684,6 +673,17 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->params['is_complete'] = true;
             } else {
                 $this->params['is_complete'] = false;
+            }
+            $datetime = new \DateTime($date);
+            $lastUpdateTime = (int) ($datetime->getTimestamp().$datetime->format('u')/ 1000);
+            if(!empty($date) && $lastUpdated != $lastUpdateTime){
+                //update product import date           
+                $lastImportPath = self::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
+                $this->generalHelper->setConfig($lastImportPath, $lastUpdateTime);
+                    $this->params['page'] = 1;
+                    $this->params['product_index'] = -1;
+            } else if( $this->params['products_total'] == ( $this->params['product_index'] + 1 ) ){
+                $this->params['page'] += 1;
             }
             return $data;
         } else {
