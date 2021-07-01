@@ -54,6 +54,9 @@ class Saveimport extends \Magento\Backend\App\Action
         } else {
             $lastImported = self::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
             $this->generalHelper->setConfig($lastImported,null);
+            $importProcessLock = self::PATH_KNAWAT_DEFAULT.'kdropship_import_process_lock';
+            $this->generalHelper->setConfig($importProcessLock,null);
+
             $this->commonHelper->runImport('manual');
             $this->messageManager->addSuccessMessage(__('Knawat Product import has been started successfully.'));
         }
