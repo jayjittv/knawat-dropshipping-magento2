@@ -4,5 +4,6 @@
 		<add id="Knawat_Dropshipping::elements" title="Dropshipping" module="Knawat_Dropshipping" resource="Knawat_Dropshipping::elements" sortOrder="20"/>
 		<add id="Knawat_Dropshipping::request" title="Settings" module="Knawat_Dropshipping" resource="Knawat_Dropshipping::request" parent="Knawat_Dropshipping::elements" sortOrder="1" action="adminhtml/system_config/edit/section/knawat" />
 		<add id="Knawat_Dropshipping::import" title="Product Import" module="Knawat_Dropshipping" resource="Knawat_Dropshipping::import" parent="Knawat_Dropshipping::elements" sortOrder="1" action="dropshipping/dropshipping/import" />
+		<add id="Knawat_Dropshipping::sync" title="Product Sync Info" module="Knawat_Dropshipping" resource="Knawat_Dropshipping::sync" parent="Knawat_Dropshipping::elements" sortOrder="2" action="dropshipping/dropshipping/sync" />
 	</menu>
 </config>

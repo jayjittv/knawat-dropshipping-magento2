@@ -1,0 +1,33 @@
+<?php
+$importCount = $block->getImportCount();
+$lastImportTime = $block->getLastImportTime();
+$connectionStatus = $block->getKnawatConnection();
+$totalProducts = $block->getTotalProducts();
+$InStockProducts = $block->getTotalInStockProducts();
+$syncProducts = $block->getLastSyncProducts();
+$timeData = $block->getTimeMinutes();
+$timeData = $timeData?$timeData:"";
+$syncBarAmount = $block->getSyncBarAmount();
+$syncBarAmount = $syncBarAmount?$syncBarAmount:"";
+$url = $block->getSyncAllUrl();
+
+?>
+<?php if(!$connectionStatus){ ?>
+    <span><?php echo __("You're not connected to ") ?><a href="https://knawat.com/" target="_blank"><?php echo __("knawat.com "); ?></a><?php echo __(", please make a connection to check sync information."); ?></span>
+<?php } elseif($syncBarAmount){ ?>
+    <div id="progressbar"></div>
+    <span>
+        <?php echo __("You have <b>".$totalProducts." Product(s)</b>, <b>".$InStockProducts. " of them in-stock</b>, Already <b>".$syncProducts." are done syncing.</b>".$timeData. "If some of your products didn't get updated, you may need to <a href=".$block->getSyncAllUrl()." style='color:#BE2930'>Sync All</a>, but it'll take a few hours maybe days to update all prices and stock."); ?>
+    </span>
+    <script type="text/javascript">
+        require(['jquery', 'jquery/ui'], function($){
+            $( "#progressbar" ).progressbar({
+                value: <?php echo $syncBarAmount; ?>
+            });
+        });
+    </script>
+<?php }else{ ?>
+    <span>
+        <?php echo __("You don't have product imported or import is in-progress , please check after some time"); ?>
+    </span>
+<?php } ?>
