@@ -16,19 +16,28 @@ class Saveimport extends \Magento\Backend\App\Action
      * @var \Knawat\Dropshipping\Helper\CommonHelper
      */
     protected $commonHelper;
+    /**
+     * @var \Knawat\Dropshipping\Helper\General
+     */
+    protected $generalHelper;
+
+    const PATH_KNAWAT_DEFAULT = 'knawat/store/';
 
 
     /**
      * Saveimport constructor.
      * @param Context $context
      * @param \Knawat\Dropshipping\Helper\CommonHelper $commonHelper
+     * @param \Knawat\Dropshipping\Helper\General $generalHelper
      */
     public function __construct(
         Context $context,
-        \Knawat\Dropshipping\Helper\CommonHelper $commonHelper
+        \Knawat\Dropshipping\Helper\CommonHelper $commonHelper,
+        \Knawat\Dropshipping\Helper\General $generalHelper
     ) {
         parent::__construct($context);
         $this->commonHelper = $commonHelper;
+        $this->generalHelper = $generalHelper;
     }
 
     /**
@@ -43,6 +52,11 @@ class Saveimport extends \Magento\Backend\App\Action
             $this->commonHelper->stopImport();
             $this->messageManager->addSuccessMessage(__('Knawat Product import has been stopped successfully.'));
         } else {
+            $lastImported = self::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
+            $this->generalHelper->setConfig($lastImported,null);
+            $importProcessLock = self::PATH_KNAWAT_DEFAULT.'kdropship_import_process_lock';
+            $this->generalHelper->setConfig($importProcessLock,null);
+
             $this->commonHelper->runImport('manual');
             $this->messageManager->addSuccessMessage(__('Knawat Product import has been started successfully.'));
         }
