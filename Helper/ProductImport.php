@@ -1098,7 +1098,9 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                     /*version compare for set label*/
                                     $version = $this->productMetadata->getVersion();
                                     $versionCompare = version_compare($version, "2.3");
-                                    if ($versionCompare == 1) {
+                                    if(version_compare($version, "2.4.1",'>=') == 1){
+                                        $_option->setLabel((string)$valueKey);
+                                    }else if ($versionCompare == 1) {
                                          $_option->setLabel($valueKey);
                                      }else{
                                          $_option->setLabel($_attributeOptionLabel);
