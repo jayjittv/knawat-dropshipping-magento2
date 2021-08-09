@@ -235,10 +235,13 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         switch ($this->importType) {
             case 'full':
                 $lastUpdated = $this->generalHelper->getConfigDirect('knawat_last_imported', true);
-                if (empty($lastUpdated) || (isset($this->params['is_manual']) && $this->params['is_manual'] == 'true')) {
+                $sortData = array(
+                  'sort' => array('field'=>'updated','order'=>'asc')
+                );
+                if (empty($lastUpdated)) {
                     $lastUpdated = 0;
                 }
-                $this->data = $mp->getProducts($this->params['limit'], $this->params['page'], $lastUpdated);
+                $this->data = $mp->getProducts($this->params['limit'], $this->params['page'], $lastUpdated,$sortData);
                 break;
 
             case 'single':
@@ -282,11 +285,11 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->params['is_complete'] = true;
                 return $data;
             }
-
             // General Variables
             $attributeSetId = $this->getAttrSetId('Knawat');
             $defaultCategoryId = $this->storeManager->getStore()->getRootCategoryId();
             $savedAttributes = [];
+            $date='';
             foreach ($products as $index => $product) {
                 if ($index <= $this->params['product_index']) {
                     continue;
@@ -306,7 +309,12 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $totalQty += isset($vars['stock_quantity']) ? $vars['stock_quantity'] : 0;
                     }
                 }
-
+                if(!empty($formated_data['updated_time'])){
+                    $this->params['last_updated'] = $formated_data['updated_time'];
+                }
+                if(!empty($product->updated)){
+                    $date = $product->updated;
+                }
                 if (!isset($formated_data['id']) || empty($formated_data['id'])) {
                     if ($totalQty == 0) {
                         $data['skipped'][] = $formated_data['sku'];
@@ -481,8 +489,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $main_product->setStockData(
                             [
                                     'use_config_manage_stock' => 0,
--                                'manage_stock' => 1,
--                                'is_in_stock' => ($totalQty > 0) ? 1 : 0
+                                    'manage_stock' => 1,
+                                    'is_in_stock' => ($totalQty > 0) ? 1 : 0
                             ]
                         );
                         // Set Existing Associated Products.
@@ -666,6 +674,17 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             } else {
                 $this->params['is_complete'] = false;
             }
+            $datetime = new \DateTime($date);
+            $lastUpdateTime = (int) ($datetime->getTimestamp().$datetime->format('u')/ 1000);
+            if(!empty($date) && $lastUpdated != $lastUpdateTime){
+                //update product import date           
+                $lastImportPath = self::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
+                $this->generalHelper->setConfig($lastImportPath, $lastUpdateTime);
+                    $this->params['page'] = 1;
+                    $this->params['product_index'] = -1;
+            } else if( $this->params['products_total'] == ( $this->params['product_index'] + 1 ) ){
+                $this->params['page'] += 1;
+            }
             return $data;
         } else {
             return ['status' => 'fail', 'message' => __('Something went wrong during get data from Knawat MP API. Please try again later.')];
@@ -687,6 +706,10 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             $attributes = [];
 
             $sku = $product->sku;
+            $updated = $product->updated;
+            if(isset($updated)){
+                $new_product['updated_time'] = $updated;
+            }
             $product_id = $this->getProductBySku($sku);
             if ($product_id) {
                 $new_product['id'] = $product_id;
@@ -1072,7 +1095,17 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                     }
                                     $_attributeOptionLabel->setStoreId(0);
                                     $_attributeOptionLabel->setLabel($valueKey);
-                                    $_option->setLabel($_attributeOptionLabel);
+                                    /*version compare for set label*/
+                                    $version = $this->productMetadata->getVersion();
+                                    $versionCompare = version_compare($version, "2.3");
+                                    if(version_compare($version, "2.4.1",'>=') == 1){
+                                        $_option->setLabel((string)$valueKey);
+                                    }else if ($versionCompare == 1) {
+                                         $_option->setLabel($valueKey);
+                                     }else{
+                                         $_option->setLabel($_attributeOptionLabel);
+                                     }
+
                                     $_option->setStoreLabels($storeLabels);
                                     $_option->setSortOrder(0);
                                     $_option->setIsDefault(false);
@@ -1192,7 +1225,12 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
         foreach ($imageUrls as $index => $imageUrl) {
             // File Path for download image.
-            $newFileName = $tmpDir.DIRECTORY_SEPARATOR.random_int(999, 9999999).baseName($imageUrl);
+           $tempImgName =  random_int(999, 9999999) . baseName($imageUrl);
+            $newFileName = $tmpDir . DIRECTORY_SEPARATOR . $tempImgName;
+            if(strlen($tempImgName)>=90){
+                $cutLength = (strlen($tempImgName) - 90) +10;
+                $newFileName = $tmpDir . DIRECTORY_SEPARATOR . substr($tempImgName, $cutLength);
+            }
             $newFileName = strtok($newFileName, "?");
             $imageType = null;
             if ($index == 0) {
